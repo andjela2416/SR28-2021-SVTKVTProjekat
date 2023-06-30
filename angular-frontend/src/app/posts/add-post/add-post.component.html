@@ -3,8 +3,13 @@
         <div class="container_1">
             <label>Content</label>
             <div>
-                <input class="container_1" type="text" id="content" placeholder="Content" name="Content"
-                    formControlName="content" [(ngModel)]="post.content" required minlength="5">
+                <input class="container_1" type="text" id="post" placeholder="Content" name="post"
+                    formControlName="post" required>
+            </div>
+            <label>Putanja slike</label>
+            <div>
+                <input class="container_1" type="text" id="pathSlike" placeholder="Putanja slike" name="pathSlike"
+                    formControlName="pathSlike" required>
             </div>
         </div>
     <br>

@@ -11,6 +11,8 @@ import { HeaderComponent } from './header/header.component';
 import { UserMenuComponent } from './user-menu/user-menu.component';
 import { LoginComponent } from './login/login.component';
 import { SignUpComponent } from './sign-up/sign-up.component';
+import { MatIconModule } from '@angular/material/icon';
+import { MatToolbarModule } from '@angular/material/toolbar';
 
 
 import {AngularMaterialModule} from './angular-material/angular-material.module';
@@ -30,7 +32,6 @@ import { AddPostComponent } from './posts/add-post/add-post.component';
 import { PostListComponent } from './posts/post-list/post-list.component';
 import { PostListContentComponent } from './posts/post-list-content/post-list-content.component';
 
-
 @NgModule({
   declarations: [
     AppComponent,
@@ -45,6 +46,8 @@ import { PostListContentComponent } from './posts/post-list-content/post-list-co
     PostListContentComponent,
   ],
   imports: [
+    MatIconModule,
+    MatToolbarModule,
     BrowserModule,
     HttpClientModule,
     AppRoutingModule,

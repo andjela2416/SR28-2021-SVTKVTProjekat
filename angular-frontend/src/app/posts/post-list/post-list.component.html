@@ -1,36 +1,39 @@
 <div class="container">
-    <table>
-        <thead>
-        </thead>
-        <tbody>
-           <ng-container *ngFor="let post of posts; let i = index">
-       			 <tr>
-         				 <td class="s">{{post.content}}</td>
-     			 </tr>
-       			 <tr>
-         				 <td>
-            				<ng-container *ngFor="let imagePath of getImagesSize2(post)">
-  								<img class="s" [src]="imagePath" alt="Slika">
-							</ng-container>
-        				  </td>
-      			  </tr>
-        			<tr>
-         				 <td>
-           						 <button (click)="deletePost(post.id)">obrisi</button>
-           						 <button (click)="editPost(post.id, post.content)">izmeni</button>
-       					   </td>
-     			   </tr>
-    		  </ng-container>
-        </tbody>
-    </table>
+  <table>
+    <thead></thead>
+    <tbody>
+      <ng-container *ngFor="let post of posts; let i = index">
+        <tr>
+          <td class="s">{{ post.content }}</td>
+        </tr>
+        <tr>
+          <td>
+            <ng-container *ngFor="let imagePath of getImagesSize2(post)">
+              <img class="s" [src]="imagePath" alt="Slika">
+            </ng-container>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <button (click)="deletePost(post.id)">obrisi</button>
+            <button (click)="editPost(post.id, post.content, post.images)">izmeni</button>
+          </td>
+        </tr>
+      </ng-container>
+    </tbody>
+  </table>
+
 <div *ngIf="editing" class="container">
     <form (ngSubmit)="onSubmit()" [formGroup]="form">
         <label for="cont_i" name="cont_f">Content</label>
         <br>
         <textarea id="cont_i" type="text" formControlName="content" required></textarea>
         <br>
+        <label for="path_i" name="path_f">Putanje slike</label>
+      <br>
+   <textarea type="text" formControlName="images" name="images" required></textarea>
+        <br>
         <button type="submit">Save</button>
     </form>
 </div>
-    
 </div>

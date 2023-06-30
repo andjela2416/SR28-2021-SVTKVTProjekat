@@ -2,6 +2,7 @@ import {HttpClient, HttpHeaders, HttpRequest, HttpResponse, HttpParams} from '@a
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import {catchError, filter, map} from 'rxjs/operators';
+import { tap } from 'rxjs/operators';
 
 export enum RequestMethod {
   Get = 'GET',
@@ -49,8 +50,8 @@ export class ApiService {
     return this.request(path, body, RequestMethod.Post, customHeaders);
   }
 
-  put(path: string, body: any): Observable<any> {
-    return this.request(path, body, RequestMethod.Put);
+  put(path: string, body?: any): Observable<any> {
+    return this.request(path,body, RequestMethod.Put);
   }
 
   delete(path: string, body?: any): Observable<any> {
@@ -60,18 +61,30 @@ export class ApiService {
     return this.request(path, body, RequestMethod.Delete);
   }
 
-  private request(path: string, body: any, method = RequestMethod.Post, custemHeaders?: HttpHeaders): Observable<any> {
+  private request(path: string, body?: any, method = RequestMethod.Post, custemHeaders?: HttpHeaders): Observable<any> {
     const req = new HttpRequest(method, path, body, {
       headers: custemHeaders || this.headers,
     });
     //req.headers.append('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE');
     //req.headers.append('Access-Control-Allow-Origin', 'http://localhost:4200');
-	console.log(method,req.headers,body);
-    return this.http.request(req).pipe(filter(response => response instanceof HttpResponse))
-      .pipe(map((response: HttpResponse<any>) => response.body))
+	console.log(method,req.headers,body,path);
+  /*  return this.http.request(req).pipe(filter(response => response instanceof HttpResponse))
+      .pipe(map((response: HttpResponse<any>) => {
+  console.log('Response received:', response.body);
+  return response.body;
+}))
       .pipe(catchError(error => this.checkError(error)));
-  }
+  }*/
+  return this.http.request(req).pipe(
+  filter(response => response instanceof HttpResponse),
+  tap((response: HttpResponse<any>) => {
+    console.log('Response received:', response.body);
+  }),
+  map((response: HttpResponse<any>) => response.body),
+  catchError(error => this.checkError(error))
+);
 
+}
   private checkError(error: any): any {
     throw error;
   }

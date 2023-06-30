@@ -18,54 +18,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @Setter
 @AllArgsConstructor
 @Table(name = "users")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "dtype")
 public class User {
 
-   /* @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false, unique = true)
-    private String username;
-
-    @Column(nullable = false)
-    private String password;
-
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private Roles role;
-
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	public String getUsername() {
-		return username;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public Roles getRole() {
-		return role;
-	}
-
-	public void setRole(Roles role) {
-		this.role = role;
-	}
-*/
+  
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
@@ -109,6 +66,8 @@ public class User {
     )
     private Set<User> friends = new HashSet<>();
 
+	@Column(name = "dtype",insertable=false, updatable=false,columnDefinition = "VARCHAR(255) DEFAULT 'User'")
+    private String dtype;
 	
 	public Integer getId() {
 		return id;
@@ -197,6 +156,16 @@ public class User {
 	public void setFriends(Set<User> friends) {
 		this.friends = friends;
 	}
+	
+	
+
+	public String getDtype() {
+		return dtype;
+	}
+
+	public void setDtype(String dtype) {
+		this.dtype = dtype;
+	}
 
 	public User() {
 
@@ -230,8 +199,11 @@ public class User {
 	public String toString() {
 		return "User [id=" + id + ", username=" + username + ", password=" + password + ", email=" + email
 				+ ", lastLogin=" + lastLogin + ", firstName=" + firstName + ", lastName=" + lastName + ", displayName="
-				+ displayName + ", description=" + description + ", role=" + role + ", friends=" + friends + "]";
+				+ displayName + ", description=" + description + ", role=" + role + ", friends=" + friends + ", dtype="
+				+ dtype + "]";
 	}
+
+
 
 	
 

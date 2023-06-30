@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Route, Router } from '@angular/router';
 import { PostService } from 'src/app/service/post.service';
+import { AuthService } from 'src/app/service/auth.service';
 
 @Component({
   selector: 'app-post-list-content',
@@ -12,11 +13,14 @@ export class PostListContentComponent implements OnInit {
 
   constructor(
     private postService:PostService,
-    private router:Router
+    private router:Router,
+    private authService:AuthService
   ) { }
 
   ngOnInit() {
-    this.getPosts()
+	if (this.authService.tokenIsPresent()) {
+		this.getPosts()
+	 }
   }
 
   getPosts(){

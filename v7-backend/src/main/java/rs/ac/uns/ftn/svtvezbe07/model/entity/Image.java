@@ -1,5 +1,6 @@
 package rs.ac.uns.ftn.svtvezbe07.model.entity;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -10,6 +11,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -29,7 +33,7 @@ public class Image {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;	
+	private Long id;	
 	
 	@Column
 	private String path;
@@ -43,10 +47,11 @@ public class Image {
 	public void setPath(String path) {
 		this.path = path;
 	}
-
+	
+	@OnDelete(action = OnDeleteAction.CASCADE) 
 	@JsonIgnoreProperties({"content","creationDate","images","postedBy"})
-	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name="post_id")
+	@ManyToOne(fetch = FetchType.EAGER)
 	private Post post;
 	    
 	@JsonIgnoreProperties({"username","friends", "lastName", "firstName","description","password","displayName","lastLogin","role","email"})
@@ -55,12 +60,13 @@ public class Image {
 	private User user;
 
 
-	public Integer getId() {
+
+	public Long getId() {
 		return id;
 	}
 
 
-	public void setId(Integer id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 

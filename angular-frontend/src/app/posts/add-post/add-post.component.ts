@@ -1,7 +1,8 @@
 import { Component, OnInit } from "@angular/core";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { FormBuilder, FormGroup, Validators ,FormControl} from "@angular/forms";
 import { Router } from "@angular/router";
 import { PostService } from "src/app/service/post.service";
+
 @Component({
   selector: 'app-add-post',
   templateUrl: './add-post.component.html',
@@ -10,7 +11,7 @@ import { PostService } from "src/app/service/post.service";
 export class AddPostComponent implements OnInit {
   post = {};
   form: FormGroup;
-
+  submitted=false;
 
   constructor(
     private postService: PostService,
@@ -18,26 +19,40 @@ export class AddPostComponent implements OnInit {
     private formBuilder: FormBuilder
   ) { }
 
-  ngOnInit() {
-    this.form = this.formBuilder.group({
-      content: [
-        "",
-        Validators.compose([
-          Validators.required,
-          Validators.minLength(3),
-          Validators.maxLength(64),
-        ]),
-      ]
-    });
+ngOnInit() {
+  this.form = this.formBuilder.group({
+    post: ['', Validators.required],
+    pathSlike: ['']
+  });
+}
+
+  onSubmit2() {
+
+	if (!this.form.value.post){
+			 alert('Tekst je obavezno polje objave');
+		
+	console.log(this.form.value.pathSlike);
+    console.warn('Your order has been submitted', this.form.value);
+    this.postService.add(this.form.value);//.subscribe((result) => {
+  //    this.router.navigate(["/posts"]);
+   //s });
+
+  }
+  
+}
+onSubmit() {
+  if (!this.form.get('post').value) {
+    alert('Tekst je obavezno polje objave');
+    return;
   }
 
-  onSubmit() {
-    console.log(this.form.value)
-    this.postService.add(this.form.value).subscribe((result) => {
-      this.router.navigate(["/posts"]);
-    });
-  }
-
-
+  console.log(this.form.value.pathSlike);
+  console.warn('Your order has been submitted', this.form.value);
+  
+  this.postService.add(this.form.value).subscribe(() => {
+  this.router.navigate(['']);
+});
 
 }
+
+} 

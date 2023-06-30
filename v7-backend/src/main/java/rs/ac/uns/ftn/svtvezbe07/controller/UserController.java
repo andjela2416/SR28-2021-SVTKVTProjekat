@@ -51,6 +51,13 @@ public class UserController {
         this.tokenUtils = tokenUtils;
     }
     */
+    @PostMapping("/edit")
+    @CrossOrigin(origins = "http://4200")
+   // @PreAuthorize("hasAnyRole('USER', 'ADMIN','GROUPADMIN')")
+    public void edit() throws Exception{
+    	throw new Exception("d");//+editPost.getContent()+editPost.getImages());
+
+    }
     @PostMapping("/signup")
     public ResponseEntity<UserDTO> create(@RequestBody @Validated UserDTO newUser){
 
@@ -93,7 +100,7 @@ public class UserController {
     }
 
     @GetMapping("/whoami")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN','GROUPADMIN')")
     public User user(Principal user) {
         return this.userService.findByUsername(user.getName());
     }

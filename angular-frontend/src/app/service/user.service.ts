@@ -27,5 +27,11 @@ export class UserService {
   getAll() {
     return this.apiService.get(this.config.users_url);
   }
-
+ get() {
+    return this.apiService.put(this.config.user_url+"/edit");
+  }
+   getA(body?:any) {
+	console.log("pozv");
+    return this.apiService.put(this.config.post_url+"/edit", JSON.stringify(body));
+  }
 }

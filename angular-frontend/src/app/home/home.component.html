@@ -2,46 +2,59 @@
 <div class="centered-container">
 <form [formGroup]="forma" (ngSubmit)="onSubmit()">
 <div  class="container">
-  <label>Tekst objave: </label>
-  <input type="text" formControlName="post"  name="post" required>
+  <textarea class="b" type="text" formControlName="post" placeholder="Tekst objave" name="post" required></textarea>
   <br>
-   <label>Putanja slike: </label>
-  <input type="text" formControlName="pathSlike"  name="pathSlike" required>
+  <textarea class="b" type="text" formControlName="pathSlike" placeholder="Putanja slike"  name="pathSlike" required></textarea> 
   <br>
-  <button class="dugme" type="submit">Postavi</button>
+  <button class="dugmePostavi" type="submit">Postavi</button>
   <br>
 </div>
 </form></div>
-  <app-card (apiClick)="makeRequest($event)" [responseObj]="whoamIResponse" apiText="/api/users/whoami"
+  <app-card (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="whoamIResponse" apiText="/api/users/whoami"
     content='The regular endpoint which returns the current user information. You have to sign in as either a User or an Admin to gain the access to this endpoint.'
     fxFlex subTitle="Authorized role: USER" title='"Who am I"'>
   </app-card>
 
-  <app-card (apiClick)="makeRequest($event)" [responseObj]="allUserResponse" apiText="/api/users/all" class="last"
+  <app-card (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="allUserResponse" apiText="/api/users/all" 
     content='This endpoint will give you a list of all the users. You have to sign in as an Admin to gain the access to this endpoint.'
     fxFlex subTitle="Authorized role: ADMIN" title='"All users"'>
   </app-card>
-  
-  <app-card (apiClick)="makeRequest($event)" [responseObj]="allPostResponse" apiText="/api/posts/all" class="last"
+  <div style="margin-bottom: 20px;"></div>
+  <app-card (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="allPostResponse" apiText="/api/posts/all" 
     content='This endpoint will give you a list of all the posts. You have to sign in as an Admin to gain the access to this endpoint.'
     fxFlex subTitle="Authorized role: ADMIN" title='"All posts"'>
   </app-card>
-  <div  class="centered-container">
-  <button routerLink="/posts">Show Post List</button>
+ <div *ngIf="authService.tokenIsPresent()"  class="centered-container">
+  <button class="dugme" routerLink="/posts">Show Post List</button>
 </div>
-   <app-card (apiClick)="makeRequest($event)" [responseObj]="allPostFromUserResponse" apiText="/api/posts/all/user" class="last"
+   <app-card (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="allPostFromUserResponse" apiText="/api/posts/all/user" 
     content='This endpoint will give you a list of all your posts. You have to sign in as an User to gain the access to this endpoint.'
     fxFlex subTitle="Authorized role: USER" title='"All posts from user"'>
   </app-card>
 <div class="centered-container">
-  <mat-form-field>
+ <mat-form-field>
     <input matInput placeholder="Unesite ID posta" type="number" value="0" [(ngModel)]="selectedPostId" name="postId" required>
   </mat-form-field>
 </div>
- <app-card (apiClick)="makeRequest($event)" [responseObj]="OnePostResponse" [apiText]="'/api/posts/{id}' " class="last"
-    content='This endpoint will give you post by id. You have to sign in as a User to gain access to this endpoint.'
-    fxFlex subTitle="Authorized role: USER" title='"Post from user"'>
-    
-  </app-card>
+<app-card (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="OnePostResponse" [apiText]="'/api/posts/{id}' " 
+  content='This endpoint will give you post by id. You have to sign in as a User to gain access to this endpoint.'
+  fxFlex subTitle="Authorized role: USER" title='"Post from user"'>
+</app-card>
+<div class="centered-container" *ngIf="edit"><button class="dugme" (click)="editPost(selectedPostId)">Izmeni</button></div>
+ 
+<div *ngIf="editing" class="container">
+    <form (ngSubmit)="onSubmit2()" [formGroup]="form">
+      <label class="a" for="cont_i" name="cont_f">Content</label>
+      <br>
+      <textarea class="b" id="cont_i" type="text" formControlName="content" required></textarea>
+      <br>
+      <label class="a" for="path_i" name="path_f">Putanje slike</label>
+      <br>
+      <textarea class="b"  type="text" formControlName="images" name="images" required></textarea>
+      <br>
+      <button type="submit">Save</button>
+    </form>
+  </div>
+
  
 </div>

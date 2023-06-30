@@ -30,6 +30,7 @@ public class PostServiceImpl implements PostService {
 			return postRepository.save(post);
 		}
 
+
 		@Override
 		public List<Post> findAllByUserId(User user) {
 		    return postRepository.findAllByPostedBy(user);
@@ -73,7 +74,6 @@ public class PostServiceImpl implements PostService {
 	    public void delete(Long idInt) {
 	        this.postRepository.deleteById(idInt);
 	    }
-
 
 		@Override
 		public Post createPost(rs.ac.uns.ftn.svtvezbe07.model.dto.PostDTO newPost) {
