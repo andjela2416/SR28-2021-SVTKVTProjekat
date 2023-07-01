@@ -22,8 +22,17 @@
   <div style="margin-bottom: 20px;"></div>
   <app-card (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="allPostResponse" apiText="/api/posts/all" 
     content='This endpoint will give you a list of all the posts. You have to sign in as an Admin to gain the access to this endpoint.'
-    fxFlex subTitle="Authorized role: ADMIN" title='"All posts"'>
+    fxFlex subTitle="Authorized role: USER" title='"All posts"'>
   </app-card>
+  <div class="centered-container">  
+  	<mat-form-field>
+    	<input matInput placeholder="Unesite ID nekog posta" type="number" value="0" [(ngModel)]="selectedPostId2" name="postId" required>
+ 	 </mat-form-field>
+	</div>
+  <app-card (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="OnePostResponse2" [apiText]="'/api/posts/{id}/one' " 
+  content='This endpoint will give you post by id. You have to sign in as a User to gain access to this endpoint.'
+  fxFlex subTitle="Authorized role: USER" title='"One Post"'>
+</app-card>
  <div *ngIf="authService.tokenIsPresent()"  class="centered-container">
   <button class="dugme" routerLink="/posts">Show Post List</button>
 </div>
@@ -41,8 +50,7 @@
   fxFlex subTitle="Authorized role: USER" title='"Post from user"'>
 </app-card>
 <div class="centered-container" *ngIf="edit"><button class="dugme" (click)="editPost(selectedPostId)">Izmeni</button></div>
- 
-<div *ngIf="editing" class="container">
+ <div *ngIf="editing" class="container">
     <form (ngSubmit)="onSubmit2()" [formGroup]="form">
       <label class="a" for="cont_i" name="cont_f">Content</label>
       <br>
@@ -55,6 +63,57 @@
       <button type="submit">Save</button>
     </form>
   </div>
-
  
+  <app-card *ngIf="edit" (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="CommentsResponse" apiText="/api/comments/all/post"
+    content='The regular endpoint which returns the current post comments. You have to sign in as either a User or an Admin to gain the access to this endpoint.'
+    fxFlex subTitle="Authorized role: USER" title='"Comments for post"'>
+  </app-card>
+ <div class="centered-container" *ngIf="edit"><button class="dugme" (click)="addComment(selectedPostId)">Dodaj komentar</button></div>
+ <div *ngIf="commenting" class="container">
+    <form (ngSubmit)="onSubmit3()" [formGroup]="form3">
+      <br>
+      <textarea class="b" id="cont_i" type="text" formControlName="text" placeholder="tekst" required></textarea>
+      <br>
+      <button type="submit">Komentarisi</button>
+    </form>
+  </div>
+<div *ngIf="edit" class="centered-container">  
+  <mat-form-field>
+    <input matInput placeholder="Unesite ID komentara" type="number" value="0" [(ngModel)]="selectedComId" name="comId" required>
+  </mat-form-field>
+</div>
+<app-card *ngIf="edit" (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="OneComResponse" [apiText]="'/api/comments/{id}' " 
+  content='This endpoint will give you com by id. You have to sign in as a User to gain access to this endpoint.'
+  fxFlex subTitle="Authorized role: USER" title='"Get one comment"'>
+</app-card>
+<div class="centered-container" *ngIf="reply"><button class="dugme" (click)="replyToCom(selectedComId)">Odgovori na komentar</button></div>
+ <div *ngIf="replying" class="container">
+    <form (ngSubmit)="onSubmit4()" [formGroup]="form4">
+      <br>
+      <textarea class="b" id="cont_i" type="text" formControlName="text" placeholder="tekst" required></textarea>
+      <br>
+      <button type="submit">Odgovori</button>
+    </form>
+  </div>
+  <app-card (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="UserCommsResponse" [apiText]="'/api/comments/all/user' " 
+  content='This endpoint will give you your comms. You have to sign in as a User to gain access to this endpoint.'
+  fxFlex subTitle="Authorized role: USER" title='"Get all of your comments"'>
+	</app-card>
+<div *ngIf="editCom" class="centered-container">  
+  <mat-form-field>
+    <input matInput placeholder="Unesite ID komentara" type="number" value="0" [(ngModel)]="selectedComIdEdit" name="comId" required>
+  </mat-form-field>
+</div>
+<app-card *ngIf="editCom" (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="OneComResponse2" [apiText]="'/api/comments/{id}/edit' " 
+  content='This endpoint will give you com by id. You have to sign in as a User to gain access to this endpoint.'
+  fxFlex subTitle="Authorized role: USER" title='"Get one comment"'>
+</app-card>
+ <div *ngIf="editCom" class="container">
+    <form (ngSubmit)="onSubmit5()" [formGroup]="form5">
+      <br>
+      <textarea class="b" id="cont_i" type="text" formControlName="text" placeholder="tekst" required></textarea>
+      <br>
+      <button type="submit">Azuriraj</button>
+    </form>
+  </div>
 </div>

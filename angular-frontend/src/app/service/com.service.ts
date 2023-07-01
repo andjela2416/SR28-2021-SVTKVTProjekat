@@ -3,16 +3,13 @@ import {ApiService} from './api.service';
 import {ConfigService} from './config.service';
 import {HttpHeaders} from "@angular/common/http";
 import { map } from 'rxjs/operators';
-import { catchError, filter, tap } from 'rxjs/operators';
 import {ActivatedRoute, Router} from "@angular/router";
- import { Observable } from 'rxjs';
-import { HttpResponse } from '@angular/common/http';
-
+ 
 
 @Injectable({
   providedIn: 'root'
 })
-export class PostService {
+export class ComService {
 
   constructor(
     private apiService: ApiService,
@@ -26,8 +23,11 @@ export class PostService {
     return this.apiService.get(this.config.posts_url);
   }
   
+    getPostComments(post:any) {
+    return this.apiService.get(this.config.commentsForPost_url+"?id="+post);
+  }
   getAllFromUser() {
-    return this.apiService.get(this.config.postsFromUser_url);
+    return this.apiService.get(this.config.usersComms_url);
   }
   edit1(post){
 	const imageArray = post.pathSlike.split(',').map(path => ({ path: path }));
@@ -42,21 +42,16 @@ export class PostService {
         this.router.navigate(['/posts']);}); 
     }))
   }
-edit(post) {
-  let imageArray: { path: string }[] = [];
-  if (post.images) {
-    imageArray = post.images.split(',').map((path: string) => ({ path }));
-  }
-  
+editCom(post) {
+
   const body = {
-    'id': post.id,
-    'content': post.content,
-    'images': imageArray
+	'id':post.id,
+    'text': post.text
   };
 
   console.log(body);
 
-  return this.apiService.put(this.config.post_url+"/edit", JSON.stringify(body));
+  return this.apiService.put(this.config.editCom_url, JSON.stringify(body));
 }
 
 
@@ -112,25 +107,20 @@ return this.apiService.put(this.config.post_url+"/edit", JSON.stringify(body))
     }))
   }
   
- getOnePost(id: number) {
+ getOneCom(id: number) {
 	const body = id;
-  const url = this.config.getOnePost_url.replace("{id}",id.toString());
-  console.log(id.toString()+"getOnepost u post serveru",url);
+  const url = this.config.getOneCom_url.replace("{id}",id.toString());
+  console.log(id.toString()+"getOneCom u com serveru",url);
   return this.apiService.get(url,body);
 }
-getOnePost2(id: number): Observable<any> {
-  const url = this.config.getOnePost_url.replace("{id}", id.toString());
-  console.log(id.toString() + " getOnePost u postService-u", url);
-  return this.apiService.get(url).pipe(
-    map((response: any) => {
-      console.log('Response received:', response);
-      return response;
-    }),
-    catchError(error => {
-      console.error('Error:', error);
-      throw error;
-    })
-  );
+ replyToCom(id: number,com) {
+ const body = {
+    'post': com.post,
+    'text': com.text
+  };
+  const url = this.config.replyToCom_url.replace("{commentId}",id.toString());
+  console.log(id.toString()+"replyToCom u com serveru",url);
+  return this.apiService.post(url,JSON.stringify(body));
 }
 
  add2(post){
@@ -155,13 +145,12 @@ getOnePost2(id: number): Observable<any> {
     
   }
   add(post: any) {
-  const imageArray = post.pathSlike.split(',').map(path => ({ path: path }));
   const body = {
-    'content': post.post,
-    'images': imageArray
+    'post': post.post,
+    'text': post.text
   };
-
-  return this.apiService.post(this.config.post_url + "/create", JSON.stringify(body));
+	console.log(body);
+  return this.apiService.post(this.config.addCom_url, JSON.stringify(body));
 }
 
 

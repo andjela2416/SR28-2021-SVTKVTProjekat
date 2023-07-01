@@ -25,6 +25,7 @@ import {AuthService} from './service/auth.service';
 import {UserService} from './service/user.service';
 import {ConfigService} from './service/config.service';
 import {PostService} from './service/post.service';
+import {ComService} from './service/com.service';
 
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { TokenInterceptor } from './interceptor/TokenInterceptor';
@@ -67,7 +68,8 @@ import { PostListContentComponent } from './posts/post-list-content/post-list-co
     ApiService,
     UserService,
     ConfigService,
-    PostService
+    PostService,
+    ComService
   ],
   bootstrap: [AppComponent]
 })

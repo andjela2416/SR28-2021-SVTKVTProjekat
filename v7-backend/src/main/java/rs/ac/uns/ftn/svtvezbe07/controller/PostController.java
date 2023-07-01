@@ -57,7 +57,7 @@ public class PostController {
 
 
 	    @GetMapping("/all")
-	    @PreAuthorize("hasRole('ADMIN')")
+	    //@PreAuthorize("hasRole('ADMIN')")
 	    public ResponseEntity<List<Post>> getAll(){
 	    	
 	        return new ResponseEntity<>(postService.getAll(), HttpStatus.OK);
@@ -123,6 +123,8 @@ public class PostController {
 //	    	         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 //	    	     }
 	    }
+	    
+	 
 	    
 	 
 		@PostMapping("/create")

@@ -9,7 +9,6 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-@AllArgsConstructor
 public class GroupAdmin  extends User {
 
 	  public GroupAdmin() {

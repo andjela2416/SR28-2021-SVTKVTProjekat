@@ -18,6 +18,10 @@ INSERT INTO user_friends (user_id, friend_id) VALUES (2, 1);
 
 INSERT INTO posts values (DEFAULT,"content","2023-06-06",1);
 
+INSERT INTO comments (id,text,_timestamp,isdeleted,user_id,post_id) values (DEFAULT,"text", "2023-06-30T10:00:00",false,1,1);
+INSERT INTO comments (id,text,_timestamp,isdeleted,user_id,post_id) values (DEFAULT,"text2","2023-06-30T11:00:00",false,2,1);
+INSERT INTO comment_replies (comment_id, reply_id) VALUES (1, 2);
+
 INSERT INTO images (id, path, post_id, user_id) VALUES 
 (DEFAULT, 'https://www.visitdubai.com/-/media/images/leisure/campaigns/dubai-presents/itineraries/nature/nature-header-2.jpg?&cw=256&ch=256', 1, 2);
 

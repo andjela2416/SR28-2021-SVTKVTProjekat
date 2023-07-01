@@ -16,6 +16,43 @@ export class ConfigService {
   get postcreate_url(): string {
     return this._postcreate_url;
   }
+  
+  private _commentsForPost_url = this._api_url + "/comments/all/post";
+	
+  get commentsForPost_url(): string {
+    return this._commentsForPost_url;
+  }
+  
+  private _editCom_url = this._api_url + "/comments/edit";
+	
+  get editCom_url(): string {
+    return this._editCom_url;
+  }
+  
+  private _usersComms_url = this._api_url + "/comments/all/user";
+	
+  get usersComms_url(): string {
+    return this._usersComms_url;
+  }
+  
+      
+  private _replyToCom_url = this._api_url + "/comments/{commentId}/reply";
+	
+  get replyToCom_url(): string {
+    return this._replyToCom_url;
+  }
+    
+  private _addCom_url = this._api_url + "/comments/create";
+	
+  get addCom_url(): string {
+    return this._addCom_url;
+  }
+  
+    private _getOneCom_url = this._api_url + "/comments/{id}";
+	
+  get getOneCom_url(): string {
+    return this._getOneCom_url;
+  }
 	
   private _login_url = this._user_url + '/login';
 
