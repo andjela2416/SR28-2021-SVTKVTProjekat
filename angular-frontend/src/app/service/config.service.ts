@@ -53,6 +53,12 @@ export class ConfigService {
   get getOneCom_url(): string {
     return this._getOneCom_url;
   }
+  
+      private _getOneCom2_url = this._api_url + "/comments";
+	
+  get getOneCom2_url(): string {
+    return this._getOneCom2_url;
+  }
 	
   private _login_url = this._user_url + '/login';
 

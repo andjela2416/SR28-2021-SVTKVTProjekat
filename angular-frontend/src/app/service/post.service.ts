@@ -58,6 +58,20 @@ edit(post) {
 
   return this.apiService.put(this.config.post_url+"/edit", JSON.stringify(body));
 }
+react(react) {
+  
+   const novaReakcija = {
+    type: react.type,
+    post: react.post,
+    comment: react.comment
+  };
+
+  console.log(novaReakcija);
+
+  return this.apiService.post("http://localhost:8080/api/reactions/create", JSON.stringify(novaReakcija));
+}
+
+
 
 
 editNe(post) {

@@ -5,6 +5,7 @@ import {PostService} from '../service/post.service';
 import {ConfigService} from '../service/config.service';
 import { FormBuilder, FormGroup,FormControl } from '@angular/forms';
 import { AuthService } from '../service/auth.service';
+import { ApiService } from '../service/api.service';
 import { ComService } from '../service/com.service';
 import { Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -44,6 +45,7 @@ export class HomeComponent implements OnInit {
   reply=false;
   edit=false;
   editCom=false;
+  comment=false;
   selectedComIdEdit:number;
     form: FormGroup
     returnUrl: string;
@@ -58,6 +60,7 @@ export class HomeComponent implements OnInit {
     private postService : PostService,
     private router: Router,
     private authService: AuthService,
+    private apiService: ApiService,
     private comService:ComService,
      private route: ActivatedRoute,
          private formBuilder: FormBuilder,
@@ -67,6 +70,7 @@ forma = new FormGroup({
     post: new FormControl('', Validators.required),
     pathSlike: new FormControl('')
   });
+
 
 
   ngOnInit() {
@@ -123,6 +127,60 @@ forma = new FormGroup({
     // Dodajte logiku koju želite da primenite ako korisnik nije ulogovan
   }
   }
+    kreirajReakciju(tipReakcije: string, postId: number, commentId: number) {
+	if (!this.selectedPostId2){
+			 alert('Unesi id posta ');
+		}
+  const novaReakcija = {
+    type: tipReakcije,
+    post: postId,
+    comment: commentId
+  };
+ this.postService.react(novaReakcija)
+    .subscribe(res => {
+      this.postService.getOnePost(this.selectedPostId2).subscribe(updatedPost => {
+        this.forgeResonseObj(this.OnePostResponse2, updatedPost, '/api/reactions/create');
+        console.log(updatedPost);
+      });
+    }, err => {
+      this.forgeResonseObj(this.OnePostResponse2, err, '/api/reactions/create');
+    });
+ /*   this.postService.react(novaReakcija)//'http://localhost:8080/api/reactions/create', novaReakcija)
+      .subscribe(res => {
+          this.forgeResonseObj(this.OnePostResponse2, res, '/api/reactions/create');
+        }, err => {
+          this.forgeResonseObj(this.OnePostResponse2, err, '/api/reactions/create');
+        });
+*/
+      
+  }
+    kreirajReakciju2(tipReakcije: string, postId: number, commentId: number) {
+	if (!this.selectedComId){
+			 alert('Unesi id komentara ');
+		}else{
+  const novaReakcija = {
+    type: tipReakcije,
+    post: postId,
+    comment: commentId
+  };
+ this.postService.react(novaReakcija)
+    .subscribe(res => {
+      this.comService.getOneCom(this.selectedComId).subscribe(updatedPost => {
+        this.forgeResonseObj(this.OneComResponse, updatedPost, '/api/reactions/create');
+        console.log(updatedPost);
+      });
+    }, err => {
+      this.forgeResonseObj(this.OneComResponse, err, '/api/reactions/create');
+    });
+ /*   this.postService.react(novaReakcija)//'http://localhost:8080/api/reactions/create', novaReakcija)
+      .subscribe(res => {
+          this.forgeResonseObj(this.OnePostResponse2, res, '/api/reactions/create');
+        }, err => {
+          this.forgeResonseObj(this.OnePostResponse2, err, '/api/reactions/create');
+        });
+*/
+      }
+  }
     onSubmit3() {
 	if (this.authService.tokenIsPresent()) {
 		 if (!this.form3.value.text){
@@ -148,7 +206,35 @@ forma = new FormGroup({
     // Dodajte logiku koju želite da primenite ako korisnik nije ulogovan
   }
   }
+     reaguj(tipReakcije: string, postId: number, commentId: number) {
+	if (this.authService.tokenIsPresent()) {
+ const novaReakcija = {
+    type: tipReakcije,
+    post: postId,
+    comment: commentId
+  };
+
+
+     this.postService.react(novaReakcija)
+        .subscribe(res => {
+		console.log(res);
+          this.forgeResonseObj(this.OnePostResponse2, res, '/api/reactions/create');
+        }, err => {
+          this.forgeResonseObj(this.OnePostResponse2, err, '/api/reactions/create');
+        });
+
+}
+	 else {
+    alert('Morate se prvo ulogovati');
+    // Dodajte logiku koju želite da primenite ako korisnik nije ulogovan
+  }
+  }
+  
     onSubmit4() {
+	if (!this.selectedPostId2) {
+  			   alert('Please enter a valid Comm ID.');
+ 			   return;
+ 			 }
 	if (this.authService.tokenIsPresent()) {
 		 if (!this.form4.value.text){
 			 alert('Tekst je obavezno polje');
@@ -210,7 +296,7 @@ forma = new FormGroup({
   
    addComment(postId?) {
 	 this.commenting = true;
-	 
+	 //console.log(postId,this.selectedPostId);
 	 this.form3 = this.formBuilder.group({
       post: this.postService.getOnePost2(postId),
       text: ['', Validators.compose([Validators.required])]
@@ -242,12 +328,31 @@ forma = new FormGroup({
     this.form3.get("post").setValue(postId);
  
   }
-  
+
+ 
+  kreirajReakciju3(tipReakcije: string, postId: number, commentId: number) {
+  const novaReakcija = {
+    type: tipReakcije,
+    post: postId,
+    comment: commentId
+  };
+
+    this.apiService.post('http://localhost:8080/api/reactions/create', novaReakcija)
+      .subscribe(res => {
+          this.forgeResonseObj(this.OneComResponse, res, 'http://localhost:8080/api/reactions/create');
+        }, err => {
+          this.forgeResonseObj(this.UserCommsResponse, err, 'http://localhost:8080/api/reactions/create');
+        });
+      
+  }
      replyToCom(comId?) {
-	 this.replying = true;
-	 
+	if (!this.selectedComId) {
+  			   alert('Please enter a valid Comm ID.');
+ 			   return;
+ 			 }
+	 this.replying=true;
 	 this.form4 = this.formBuilder.group({
-      post: this.postService.getOnePost2(this.selectedPostId),
+      post: this.postService.getOnePost2(this.selectedPostId2),
       text: ['', Validators.compose([Validators.required])]
     });
 /*      this.route.params
@@ -274,7 +379,7 @@ forma = new FormGroup({
       }
     );*/
   
-    this.form4.get("post").setValue(this.selectedPostId);
+    this.form4.get("post").setValue(this.selectedPostId2);
  
   }
   editPost(postId?) {
@@ -323,7 +428,7 @@ getImagesSize1(images: any): string[] {
   makeRequest(path) {
 	
 	if (this.authService.tokenIsPresent()) {
-  console.log(path);
+  console.log(this.config.getOnePost_url+"/one",path);
   
 	
    if (this.config.whoami_url.endsWith(path)) {
@@ -350,8 +455,13 @@ getImagesSize1(images: any): string[] {
           this.forgeResonseObj(this.UserCommsResponse, err, path);
         }); 
         }else if (this.config.commentsForPost_url.endsWith(path)) {
+	if (!this.selectedPostId2) {
+  			   alert('Please enter a valid Comm ID.');
+ 			   return;
+ 			 }
+	this.reply=true;
 	console.log(path);
-      this.comService.getPostComments(this.selectedPostId)
+      this.comService.getPostComments(this.selectedPostId2)
         .subscribe(res => {
           this.forgeResonseObj(this.CommentsResponse, res, path);
         }, err => {
@@ -365,16 +475,17 @@ getImagesSize1(images: any): string[] {
           this.forgeResonseObj(this.allPostFromUserResponse, err, path);
         });
         }else if (this.config.getOneCom_url.endsWith(path)) {
+		
 		if (!this.selectedComId) {
   			   alert('Please enter a valid Comm ID.');
  			   return;
  			 }
  		this.reply=true;
- 		this.comService.getPostComments(this.selectedPostId).subscribe(comments => {
+ 		this.comService.getPostComments(this.selectedPostId2).subscribe(comments => {
   		const isIdFound = comments.some(com => com.id === this.selectedComId);
   		if (isIdFound) {
     		console.log('ID postoji.');
-    			 this.edit=true;
+    			alert("evo ga id"+this.selectedComId);
       	this.comService.getOneCom(this.selectedComId)
         .subscribe(res => {
           this.forgeResonseObj(this.OneComResponse, res, path);
@@ -389,7 +500,8 @@ getImagesSize1(images: any): string[] {
 			});
 
     	} 
-    	else if (this.config.getOneCom_url+("/edit").endsWith(path)) {
+    	else if (this.config.getOneCom2_url.endsWith(path)) {
+	alert("hajha"+this.config.getOneCom2_url+path);
 		if (!this.selectedComIdEdit) {
   			   alert('Please enter a valid Comm ID.');
  			   return;
@@ -398,7 +510,6 @@ getImagesSize1(images: any): string[] {
   		const isIdFound = comments.some(com => com.id === this.selectedComIdEdit);
   		if (isIdFound) {
     		console.log('ID postoji.');
-    			 this.edit=true;
       	this.comService.getOneCom(this.selectedComIdEdit)
         .subscribe(res => {
           this.forgeResonseObj(this.OneComResponse2, res, path);
@@ -414,7 +525,7 @@ getImagesSize1(images: any): string[] {
 
     	} 
         else if (this.config.getOnePost_url.endsWith(path)) {
-	alert("a");
+		this.edit=true;
 	 	if (!this.selectedPostId) {
   			   alert('Please enter a valid Post ID.');
  			   return;
@@ -423,7 +534,6 @@ getImagesSize1(images: any): string[] {
   		const isIdFound = posts.some(post => post.id === this.selectedPostId);
   		if (isIdFound) {
     		console.log('ID postoji.');
-    			 this.edit=true;
       this.postService.getOnePost(this.selectedPostId)
         .subscribe(res => {
           this.forgeResonseObj(this.OnePostResponse, res, path);
@@ -438,17 +548,17 @@ getImagesSize1(images: any): string[] {
 			});
 
     } else if (this.config.getOnePost_url+"/one".endsWith(path)) {
-	alert("a");
+	alert("b");
 	console.log(this.selectedPostId2);
 	 	if (!this.selectedPostId2) {
-  			   alert('Please enter a valid Post ID.');
+  			   alert('Please enter a valid Post IDDD.');
  			   return;
  			 }
  		this.postService.getAll().subscribe(posts => {
   		const isIdFound = posts.some(post => post.id === this.selectedPostId2);
   		if (isIdFound) {
     		console.log('ID postoji.');
-    			 this.edit=true;
+    			 this.comment=true;
       this.postService.getOnePost(this.selectedPostId2)
         .subscribe(res => {
           this.forgeResonseObj(this.OnePostResponse2, res, path);

@@ -108,10 +108,10 @@ return this.apiService.put(this.config.post_url+"/edit", JSON.stringify(body))
   }
   
  getOneCom(id: number) {
-	const body = id;
+	//const body = id;
   const url = this.config.getOneCom_url.replace("{id}",id.toString());
   console.log(id.toString()+"getOneCom u com serveru",url);
-  return this.apiService.get(url,body);
+  return this.apiService.get(url);
 }
  replyToCom(id: number,com) {
  const body = {
