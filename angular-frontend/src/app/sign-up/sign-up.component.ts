@@ -60,11 +60,11 @@ export class SignUpComponent implements OnInit {
     this.form = this.formBuilder.group({
       username: ['', Validators.compose([Validators.required/*, Validators.minLength(3), Validators.maxLength(64)*/])],
       password: ['', Validators.compose([Validators.required/*, Validators.minLength(3), Validators.maxLength(32)*/])],
-      firstName: [''],
-      lastName: [''],
-      email: [''],
+      firstName: ['', Validators.compose([Validators.required/*, Validators.minLength(3), Validators.maxLength(64)*/])],
+      lastName: ['', Validators.compose([Validators.required/*, Validators.minLength(3), Validators.maxLength(64)*/])],
+      email: ['', Validators.compose([Validators.required/*, Validators.minLength(3), Validators.maxLength(64)*/])],
       description: [''],
-      displayName:['']
+      displayName:['', Validators.compose([Validators.required/*, Validators.minLength(3), Validators.maxLength(64)*/])]
     });
   }
 

@@ -16,11 +16,8 @@
                 </mat-form-field>
                 <button [disabled]="!loginForm.form.valid" color="primary" mat-raised-button
                     type="submit">Login</button>
-                <br>
-                <button color="primary" mat-raised-button routerLink="/" >Go Back</button>
+               
             </form>
-            <br>
-
             <mat-spinner *ngIf="submitted" mode="indeterminate"></mat-spinner>
             <br>
             <hr>

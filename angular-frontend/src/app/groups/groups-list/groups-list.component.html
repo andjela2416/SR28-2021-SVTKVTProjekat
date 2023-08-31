@@ -1,0 +1,31 @@
+<div class="centered-container">
+	<form [formGroup]="forma" (ngSubmit)="onSubmitPostavi()">
+	<div class="container2">
+  	<textarea class="t" type="text" formControlName="post" placeholder="Text" name="post" required></textarea>
+  	<br>
+  	<textarea class="t" type="text" formControlName="pathSlike" placeholder="Image path"  name="pathSlike" required></textarea> 
+  	<br>
+  	<button class="dugmePostavi" type="submit">Post</button>
+  	<br>
+	</div>
+	</form>
+	</div>
+	
+		 <button class="dugme" style="margin-bottom:10px" (click)="praviGrupu()">Napravi grupu</button>
+ <div *ngIf="createGroup" class="centered-container">
+<form [formGroup]="form6" (ngSubmit)="napraviGrupu()">
+<div  class="container">
+  <textarea class="b" type="text" formControlName="name" placeholder="Ime grupe" name="name" required></textarea>
+  <br>
+  <textarea class="b" type="text" formControlName="description" placeholder="Opis grupe"  name="description" required></textarea> 
+  <br>
+  <button class="dugmePostavi" type="submit">Kreiraj</button>
+  <button class="dugme" (click)="cancel()">Odustani</button>
+  <br>
+</div>
+</form></div>
+
+<div class="container">
+<table>
+</table>
+</div>

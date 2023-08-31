@@ -2,7 +2,7 @@ import { Component, OnInit } from "@angular/core";
 import { FormBuilder, FormGroup, Validators ,FormControl} from "@angular/forms";
 import { Router } from "@angular/router";
 import { PostService } from "src/app/service/post.service";
-
+import { Location } from '@angular/common';
 @Component({
   selector: 'app-add-post',
   templateUrl: './add-post.component.html',
@@ -16,7 +16,8 @@ export class AddPostComponent implements OnInit {
   constructor(
     private postService: PostService,
     private router: Router,
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+       private location: Location
   ) { }
 
 ngOnInit() {
@@ -49,9 +50,10 @@ onSubmit() {
   console.log(this.form.value.pathSlike);
   console.warn('Your order has been submitted', this.form.value);
   
-  this.postService.add(this.form.value).subscribe(() => {
-  this.router.navigate(['']);
-});
+ this.postService.add(this.form.value).subscribe(() => {
+    // Vraćanje na prethodnu stranicu
+    this.location.back();
+  });
 
 }
 

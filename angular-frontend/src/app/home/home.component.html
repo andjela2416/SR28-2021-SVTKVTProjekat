@@ -19,8 +19,91 @@
     content='This endpoint will give you a list of all the users. You have to sign in as an Admin to gain the access to this endpoint.'
     fxFlex subTitle="Authorized role: ADMIN" title='"All users"'>
   </app-card>
+  	<input *ngIf="admin" matInput placeholder="Unesite ID usera" type="number" value="0" [(ngModel)]="selectedUserId" name="userId" required>
+   <button *ngIf="admin" class="dugme" (click)="blokiraj()">Blokiraj Korisnika</button>
+    <app-card *ngIf="admin"(apiClick)="makeRequest($event)"  class="app-card" [responseObj]="allGroupResponse" apiText="/api/groups/all" 
+    content='This endpoint will give you a list of all the groups You have to sign in as an ADMIN to gain the access to this endpoint.'
+    fxFlex subTitle="Authorized role: ADMIN" title='"All all groups"'>
+  </app-card> 
+  <app-card (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="allGroupForUserResponse" apiText="/api/groups/nisuuclanjeni" 
+    content='This endpoint will give you a list of all the groups You have to sign in as an User to gain the access to this endpoint.'
+    fxFlex subTitle="Authorized role: USER" title='"All groups"'>
+  </app-card>
+  <div class="centered-container">  
+  		<mat-form-field>
+    		<input matInput placeholder="Unesite ID neke grupe" type="number" value="0" [(ngModel)]="selectedGroupId" name="groupId" required>
+ 	 </mat-form-field>
+	</div>
+  <app-card (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="OneGroupNResponse" [apiText]="'/api/groups/nisuuclanjeni/{id}' " 
+  content='This endpoint will give you group by id. You have to sign in as a User to gain access to this endpoint.'
+  fxFlex subTitle="Authorized role: USER" title='"One group"'>
+</app-card>
+ <button class="dugme" (click)="posaljiZahtevZaGrupu()">Posalji zahtev da se uclanis</button>
+  <button *ngIf="admin" class="dugme" (click)="suspendGrupu()">Suspenduj grupu</button>
+ <div *ngIf="suspendGroup" class="centered-container">
+<form [formGroup]="formaa" (ngSubmit)="suspendujGrupu()">
+<div  class="container">
+  <textarea class="b" type="text" formControlName="suspendedReason" placeholder="Razlog" name="suspendedReason" required></textarea>
+  <br>
+  <button class="dugmePostavi" type="submit">Suspenduj</button>
+  <br>
+</div>
+</form></div>
+ 
+ <button class="dugme" (click)="praviGrupu()">Napravi grupu</button>
+ <div *ngIf="createGroup" class="centered-container">
+<form [formGroup]="form6" (ngSubmit)="napraviGrupu()">
+<div  class="container">
+  <textarea class="b" type="text" formControlName="name" placeholder="Ime grupe" name="name" required></textarea>
+  <br>
+  <textarea class="b" type="text" formControlName="description" placeholder="Opis grupe"  name="description" required></textarea> 
+  <br>
+  <button class="dugmePostavi" type="submit">Kreiraj</button>
+  <br>
+</div>
+</form></div>
+ <app-card (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="allGroupForUser2Response" apiText="/api/groups/uclanjeni" 
+    content='This endpoint will give you a list of all the groups that you member of.You have to sign in as an User to gain the access to this endpoint.'
+    fxFlex subTitle="Authorized role: USER" title='"All groups(you the member)"'>
+  </app-card>
+   <div class="centered-container">  
+  		<mat-form-field>
+    		<input matInput placeholder="Unesite ID neke grupe" type="number" value="0" [(ngModel)]="selectedGroupId3" name="groupId" required>
+ 	 </mat-form-field>
+	</div>
+  <app-card (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="OneGroupUResponse" [apiText]="'/api/groups/uclanjeni/{id}' " 
+  content='This endpoint will give you group by id. You have to sign in as a User to gain access to this endpoint.'
+  fxFlex subTitle="Authorized role: USER" title='"One group"'>
+</app-card>
+ <app-card (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="GroupPostsResponse" [apiText]="'/api/groups/allPosts' " 
+  content='This endpoint will give you posts by group. You have to sign in as a User to gain access to this endpoint.'
+  fxFlex subTitle="Authorized role: USER" title='"Posts from group"'>
+</app-card>
+<div class="centered-container">
+<form [formGroup]="formg" (ngSubmit)="onSubmitg()">
+<div  class="container">
+  <textarea class="b" type="text" formControlName="content" placeholder="Tekst objave" name="content" required></textarea>
+  <br>
+  <textarea class="b" type="text" formControlName="pathSlike" placeholder="Putanja slike"  name="pathSlike" required></textarea> 
+  <br>
+  <button class="dugmePostavi" type="submit">Postavi</button>
+  <br>
+</div>
+</form></div>
   <div style="margin-bottom: 20px;"></div>
-  <app-card (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="allPostResponse" apiText="/api/posts/all" 
+    <div>
+  <label *ngIf="sort2" for="sortSelect" >Sortiranje postova:</label>
+  <select *ngIf="sort2" id="sortSelect" (change)="sortComments2($event.target.value)">
+   	<option disabled selected>Odaberite</option>
+    <option value="new">Datum objavljivanja (Najskorije)</option>
+    <option value="old">Datum objavljivanja (Najstarije)</option>
+  </select>
+</div>
+  <app-card *ngIf="admin" (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="allPostResponse" apiText="/api/posts/all" 
+    content='This endpoint will give you a list of all the posts. You have to sign in as an Admin to gain the access to this endpoint.'
+    fxFlex subTitle="Authorized role: USER" title='"All all posts"'>
+  </app-card>
+    <app-card (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="allPostRndmResponse" apiText="/api/groups/random" 
     content='This endpoint will give you a list of all the posts. You have to sign in as an Admin to gain the access to this endpoint.'
     fxFlex subTitle="Authorized role: USER" title='"All posts"'>
   </app-card>
@@ -29,17 +112,33 @@
     	<input matInput placeholder="Unesite ID nekog posta" type="number" value="0" [(ngModel)]="selectedPostId2" name="postId" required>
  	 </mat-form-field>
 	</div>
-  <app-card (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="OnePostResponse2" [apiText]="'/api/posts/{id}/one' " 
+  <app-card (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="OnePostResponse2" [apiText]="'/api/posts' " 
   content='This endpoint will give you post by id. You have to sign in as a User to gain access to this endpoint.'
   fxFlex subTitle="Authorized role: USER" title='"One Post"'>
 </app-card>
-
  <div class="centered-container2" *ngIf="comment">
   <button class="dugme2" name="LIKE" (click)="kreirajReakciju('LIKE', selectedPostId2, null)">Like</button>
   <button class="dugme2" name="DISLIKE" (click)="kreirajReakciju('DISLIKE', selectedPostId2, null)">Dislike</button>
   <button class="dugme2" name="HEART" (click)="kreirajReakciju('HEART', selectedPostId2, null)">Heart</button>
- <button class="dugme2" (click)="addComment(selectedPostId2)">Dodaj komentar</button></div>
-
+ <button class="dugme2" (click)="addComment(selectedPostId2)">Dodaj komentar</button>
+  <button class="dugme2" name="Report" (click)="reportuj2(selectedPostId2, selectedReason)">Reportuj</button>
+</div>
+  <div>
+  <label *ngIf="comment" for="reportSelect" >Razlog prijave:</label>
+  <select id="reportSelect" [(ngModel)]="selectedReason"*ngIf="comment">
+    <option disabled selected>Odaberite razlog</option>
+    <option value="BREAKES_RULES">Kršenje pravila</option>
+    <option value="HARASSMENT">Zlostavljanje</option>
+    <option value="HATE">Mržnja</option>
+    <option value="SHARING_PERSONAL_INFORMATION">Deljenje ličnih informacija</option>
+    <option value="IMPERSONATION">Uzurpacija</option>
+    <option value="COPYRIGHT_VIOLATION">Kršenje autorskih prava</option>
+    <option value="TRADEMARK_VIOLATION">Kršenje zaštitnog znaka</option>
+    <option value="SPAM">Spam</option>
+    <option value="SELF_HARM_OR_SUICIDE">Samopovređivanje ili samoubistvo</option>
+    <option value="OTHER">Drugo</option>
+    </select>
+</div>
  <div *ngIf="commenting" class="container">
     <form (ngSubmit)="onSubmit3()" [formGroup]="form3">
       <br>
@@ -48,6 +147,20 @@
       <button type="submit">Komentarisi</button>
     </form>
   </div>
+  <div>
+  <label *ngIf="sort" for="sortSelect" >Sortiranje komentara:</label>
+  <select *ngIf="sort" id="sortSelect" (change)="sortComments($event.target.value)">
+  	<option disabled selected>Odaberite</option>
+    <option value="likesO">Broj lajkova (Opadajuce)</option>
+    <option value="likesR">Broj lajkova (Rastuce)</option>
+    <option value="dislikesO">Broj dislajkova (Opadajuce)</option>
+    <option value="dislikesR">Broj dislajkova (Rastuce)</option>
+    <option value="heartsO">Broj srca (Opadajuce)</option>
+    <option value="heartsR">Broj srca (Rastuce)</option>
+    <option value="new">Datum objavljivanja (Najskorije)</option>
+    <option value="old">Datum objavljivanja (Najstarije)</option>
+  </select>
+</div>
   
    <app-card (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="CommentsResponse" apiText="/api/comments/all/post"
     content='The regular endpoint which returns the current post comments. You have to sign in as either a User or an Admin to gain the access to this endpoint.'
@@ -66,7 +179,25 @@
   <button class="dugme2" name="LIKE" (click)="kreirajReakciju2('LIKE',  null, selectedComId)" >Like</button>
   <button class="dugme2" name="DISLIKE" (click)="kreirajReakciju2('DISLIKE',  null, selectedComId)">Dislike</button>
   <button class="dugme2" name="HEART" (click)="kreirajReakciju2('HEART',  null, selectedComId)">Heart</button>
-<button class="dugme2" (click)="replyToCom(selectedComId)">Odgovori na komentar</button></div>
+<button class="dugme2" (click)="replyToCom(selectedComId)">Odgovori na komentar</button>
+ <button class="dugme2" name="Report" (click)="reportuj3(selectedPostId2, selectedReason)">Reportuj</button>
+</div>
+  <div *ngIf="reply">
+  <label *ngIf="reply" for="reportSelect" >Razlog prijave:</label>
+  <select id="reportSelect" [(ngModel)]="selectedReason"*ngIf="comment">
+    <option disabled selected>Odaberite razlog</option>
+    <option value="BREAKES_RULES">Kršenje pravila</option>
+    <option value="HARASSMENT">Zlostavljanje</option>
+    <option value="HATE">Mržnja</option>
+    <option value="SHARING_PERSONAL_INFORMATION">Deljenje ličnih informacija</option>
+    <option value="IMPERSONATION">Uzurpacija</option>
+    <option value="COPYRIGHT_VIOLATION">Kršenje autorskih prava</option>
+    <option value="TRADEMARK_VIOLATION">Kršenje zaštitnog znaka</option>
+    <option value="SPAM">Spam</option>
+    <option value="SELF_HARM_OR_SUICIDE">Samopovređivanje ili samoubistvo</option>
+    <option value="OTHER">Drugo</option>
+    </select>
+</div>
  <div *ngIf="replying" class="container">
     <form (ngSubmit)="onSubmit4()" [formGroup]="form4">
       <br>
@@ -104,9 +235,46 @@
       <br>
       <button type="submit">Save</button>
     </form>
+    <button (click)="deletePost(selectedPostId)">Obrisi</button>
   </div>
- 
-
+   <app-card (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="UserGroupsResponse" [apiText]="'/api/groups/all/user' " 
+  content='This endpoint will give you your groups You have to sign in as a User to gain access to this endpoint.'
+  fxFlex subTitle="Authorized role: USER" title='"Get all of your groups"'>
+	</app-card>
+<div *ngIf="editGroup" class="centered-container">  
+  <mat-form-field>
+    <input matInput placeholder="Unesite ID grupe" type="number" value="0" [(ngModel)]="selectedGroupIdEdit" name="comId" required>
+  </mat-form-field>
+</div>
+ <app-card *ngIf="editGroup" (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="YourGroupPostsResponse" [apiText]="'/api/groups/allPosts/your' " 
+  content='This endpoint will give you posts by group. You have to sign in as a User to gain access to this endpoint.'
+  fxFlex subTitle="Authorized role: USER" title='"Posts from your group"'>
+</app-card>
+<app-card *ngIf="editGroup" (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="OneGroupResponse2" [apiText]="'/api/groups' " 
+  content='This endpoint will give you group by id. You have to sign in as a User to gain access to this endpoint.'
+  fxFlex subTitle="Authorized role: USER" title='"Get one of your groups"'>
+</app-card>
+ <div *ngIf="editGroup" class="container">
+    <form (ngSubmit)="onSubmit8()" [formGroup]="form8">
+      <br>
+      <textarea class="b" id="cont_i" type="text" formControlName="name" placeholder="ime" ></textarea>
+      <br>
+      <textarea class="b" id="cont_i2" type="text" formControlName="description" placeholder="opis" ></textarea>
+      <br>
+      <button type="submit">Azuriraj</button>
+    </form>
+       <button (click)="deleteGroup(selectedGroupIdEdit)">Obrisi</button>
+  </div>
+<app-card *ngIf="editGroup" (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="GroupRequestsResponse" [apiText]="'/api/groups/gru' " 
+  content='This endpoint will give you group requests. You have to sign in as a User to gain access to this endpoint.'
+  fxFlex subTitle="Authorized role: USER" title='"Get your groups requests"'>
+</app-card>
+<div *ngIf="open" class="centered-container">  
+  <mat-form-field>
+    <input matInput placeholder="Unesite ID requesta" type="number" value="0" [(ngModel)]="selectedRequestId" name="reqId" required>
+    <button class="dugme2" (click)="prihvati(selectedRequestId)">Prihvati</button>
+  </mat-form-field>
+</div>
   <app-card (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="UserCommsResponse" [apiText]="'/api/comments/all/user' " 
   content='This endpoint will give you your comms. You have to sign in as a User to gain access to this endpoint.'
   fxFlex subTitle="Authorized role: USER" title='"Get all of your comments"'>
@@ -128,4 +296,31 @@
       <button type="submit">Azuriraj</button>
     </form>
   </div>
+  <app-card *ngIf="admin" (apiClick)="makeRequest($event)"  class="app-card" [responseObj]="ReportResponse" [apiText]="'/api/groups/reports' " 
+  content='This endpoint will give you reports. You have to sign in as a Admin to gain access to this endpoint.'
+  fxFlex subTitle="Authorized role: USER" title='"Get reports"'>
+</app-card>
+
+
+        <form (ngSubmit)="onSubmit9()" *ngIf="!submitted2" [formGroup]="formP">
+            <mat-form-field>
+                <label>Stara lozinka: </label>
+                <input formControlName="current" matInput required type="password">
+            </mat-form-field>
+            <mat-form-field>
+                <label>Nova lozinka: </label>
+                <input formControlName="password" matInput required type="password">
+            </mat-form-field>
+            <mat-form-field>
+                <label>Nova lozinka: </label>
+                <input formControlName="confirm" matInput required type="password">
+            </mat-form-field>
+            
+            <button [disabled]="!formP.valid" color="primary" mat-raised-button type="submit">Change</button>
+            <br>
+            
+        </form>
+        <br>
+
+
 </div>

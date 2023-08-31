@@ -1,0 +1,347 @@
+.container {
+  max-width: 440px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 10px;
+  padding-right: 10px;
+  margin-top:18px;
+  
+}
+
+table {
+  max-width: 950px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 10px;
+  padding-right: 10px;
+  
+}
+
+table, th, td {
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 15px; 
+  width: 400px;
+}
+
+input, label {
+  margin: 10px;
+}
+
+input {
+  width: 100px;
+}
+
+textarea {
+  width: 300px;
+  height: 100px;
+}
+
+.s {
+  width: 200px;
+  border-radius:10px;
+}
+
+.spacer-row {
+  height: 20px;
+}
+
+.post-row {
+  border: 1px solid black; 
+}
+
+.post-row th,
+.post-row td {
+  border: 1px solid black; 
+}
+.centered-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  
+}
+.container2 {
+  
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+.t {
+  width: 300px;
+  height: 100px;
+}
+.dugmePostavi {
+  background-color: #673ab7;
+  margin: 10px;
+  margin-left:200px;
+  color: white;
+  font-size: 12px;
+  text-align: center; 
+  padding: 5px 10px; 
+  border-radius: 3px;
+  float:right;
+}
+
+.dugme {
+  background-color: #673ab7;
+  margin: 10px;
+  color: white;
+  font-size: 12px;
+  text-align: center; 
+  padding: 5px 10px; 
+  border-radius: 3px;
+}
+
+.comment-cell {
+  display: flex;
+  align-items: center;
+  margin-bottom:15px;
+}
+
+
+.comment-cell input[type="text"] {
+  flex: 1;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  margin-right: 5px;
+}
+
+.comment-cell button {
+  background-color: #147d10;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.comment-cell button:hover {
+  background-color: #11700d;
+}
+.comment-row1 {
+    padding: 5px 0;
+    border: 1px solid black; 
+    font-size:12px;
+    text-align:right;
+    margin-left:12px;
+}
+
+.comment-toggle-link {
+    color: #0000FF; 
+    text-decoration: underline;
+    cursor: pointer;
+}
+.comment {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.actions {
+    align-items: center;
+    position: relative;
+    margin-left:15px;
+}
+
+.user-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.username {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.avatar-container {
+    display: flex;
+    align-items: center;
+    margin-right: 5px;
+}
+
+.user-avatar1 {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+}
+
+.username1 {
+    font-weight: 500;
+    display: flex;
+    font-size:13px;
+    align-items: center;
+    flex-grow: 1; }
+
+.post-content{
+	text-align:left;
+	margin-left:35px;
+	font-size:15px;
+}
+
+
+.comment-time {
+    font-size: 12px;
+    text-align: left;
+    margin-left:5px;
+}
+.comment-container {
+    max-height: 250px; 
+    overflow-y: auto; 
+    max-width: 403px; 
+    overflow-x: auto;
+}
+.replies {
+  margin-left: 30px; /* ugnjezdenost */
+  border-left: 1px solid #ccc;
+  padding-left: 10px; 
+}
+.reply-level {
+  margin-left: 20px;
+}
+.edit-link {
+    color: #888;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    padding: 2px 8px;
+}
+
+.edit-link:hover {
+    text-decoration: underline;
+}
+
+.comment-actions {
+    display: flex;
+    align-items: center;
+}
+.comment-actions2 {
+	margin-left:25px;
+    display: flex;
+    align-items: center;
+}
+.reaction-icons {
+  float: left;
+  margin-left: 10px; 
+  height:20px;
+  display: flex;
+  align-items: center;
+}
+
+.reaction-icons i {
+  font-size: 16px; 
+  color: #333; 
+  cursor: pointer;
+}
+.reaction-icons i:hover {
+  color: blue; 
+}
+
+.reaction-icons2 {
+  margin-left:20px;
+  margin-top:5px;
+  display: flex;
+  align-items: center;
+}
+
+.reaction-icons2 i {
+  font-size: 12px; 
+  color: #333; 
+  cursor: pointer;
+}
+.reaction-icons2 i:hover {
+  color: blue; 
+}
+.reaction-count{
+	padding: 0px 5px;
+}
+.comm {
+	border: 1px solid black;
+	font-size:12px;
+
+}
+/*
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.show {
+  display: block;
+}*/
+
+.ellipsis-icon {
+  cursor: pointer;
+  font-size: 24px; 
+}
+
+.dropdown-content {
+  position: absolute;
+  background-color: #fff;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+  list-style-type: none; 
+  padding: 0; 
+  margin-left: -40px;
+  margin-top:0px;
+  margin-bottom:0px;
+}
+
+
+.dropdown-content li a {
+  text-decoration: none;
+  color: black;
+  display: block;
+}
+
+.dropdown-content li a:hover {
+  background-color: #f2f2f2;
+}
+
+.edit-label {
+  text-align: center;
+  display: block; 
+}
+
+
+.report-reasons-dropdown {
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  z-index: 1;
+  transform: translateX(-100%); /* Pomera meni skroz levo */
+
+}
+
+.report-reasons-dropdown.active {
+  display: block; /* Prikazuje meni kada je aktivan */
+}
+
+.report-reasons-dropdown li {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.report-reasons-dropdown li:hover {
+  background-color: #f0f0f0;
+}
+

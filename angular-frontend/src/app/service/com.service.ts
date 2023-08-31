@@ -4,7 +4,6 @@ import {ConfigService} from './config.service';
 import {HttpHeaders} from "@angular/common/http";
 import { map } from 'rxjs/operators';
 import {ActivatedRoute, Router} from "@angular/router";
- 
 
 @Injectable({
   providedIn: 'root'
@@ -16,6 +15,7 @@ export class ComService {
     private config: ConfigService,
      private router: Router,
      private route: ActivatedRoute,
+     
   ) {
   }
 
@@ -26,6 +26,13 @@ export class ComService {
     getPostComments(post:any) {
     return this.apiService.get(this.config.commentsForPost_url+"?id="+post);
   }
+  
+
+  
+   getCommentReplies(post:any) {
+    return this.apiService.get(this.config.repliesForComment_url+"?id="+post);
+  }
+  
   getAllFromUser() {
     return this.apiService.get(this.config.usersComms_url);
   }
@@ -99,12 +106,7 @@ return this.apiService.put(this.config.post_url+"/edit", JSON.stringify(body))
 
   delete(postId){
 	console.log("De"+postId);
-    return this.apiService.delete(this.config.post_url+ "/delete?id=" + postId)
-    .pipe(map(() => {
-      console.log("Delete success");
-      this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
-        this.router.navigate(['/posts']);}); 
-    }))
+    return this.apiService.delete(this.config.devetnaest+ "/delete?id=" + postId)
   }
   
  getOneCom(id: number) {
@@ -146,11 +148,23 @@ return this.apiService.put(this.config.post_url+"/edit", JSON.stringify(body))
   }
   add(post: any) {
   const body = {
-    'post': post.post,
-    'text': post.text
+    'post': post.postId,
+    'text': post.content
   };
 	console.log(body);
   return this.apiService.post(this.config.addCom_url, JSON.stringify(body));
+}
+sort(sort) {
+  
+  console.log(sort);
+
+  return this.apiService.get("http://localhost:8080/api/comments/sort?sort="+sort.sort+"&id="+sort.post);
+}
+sort2(sort) {
+  
+  console.log(sort);
+
+  return this.apiService.get("http://localhost:8080/api/posts/all/sorted?sort="+sort.sort);
 }
 
 

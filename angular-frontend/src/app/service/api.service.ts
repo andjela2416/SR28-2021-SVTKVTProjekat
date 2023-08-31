@@ -40,13 +40,14 @@ export class ApiService {
     if (args) {
       options['params'] = this.serialize(args);
     }
-
+	console.log(path+" apiServ");
     return this.http.get(path, options)
       .pipe(catchError(this.checkError.bind(this)));
   }
+  
 
-  post(path: string, body: any, customHeaders?: HttpHeaders): Observable<any> {
-	console.log(body);
+  post(path: string, body?: any, customHeaders?: HttpHeaders): Observable<any> {
+	
     return this.request(path, body, RequestMethod.Post, customHeaders);
   }
 
@@ -67,7 +68,7 @@ export class ApiService {
     });
     //req.headers.append('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE');
     //req.headers.append('Access-Control-Allow-Origin', 'http://localhost:4200');
-	console.log(method,req.headers,body,path);
+	console.log(method,path);
   /*  return this.http.request(req).pipe(filter(response => response instanceof HttpResponse))
       .pipe(map((response: HttpResponse<any>) => {
   console.log('Response received:', response.body);

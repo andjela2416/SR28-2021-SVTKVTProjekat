@@ -1,3 +1,9 @@
 eclipse.preferences.version=1
+encoding//src/app/allPosts/allPost-list/allPost-list.component.css=UTF-8
+encoding//src/app/allPosts/allPost-list/allPost-list.component.html=UTF-8
+encoding//src/app/allPosts/allPost-list/allPost-list.component.ts=UTF-8
+encoding//src/app/allPosts/comment-list/comment-list.component.css=UTF-8
+encoding//src/app/home/home.component.html=UTF-8
 encoding//src/app/home/home.component.ts=UTF-8
+encoding//src/app/posts/add-post/add-post.component.ts=UTF-8
 encoding//src/app/service/post.service.ts=UTF-8

@@ -1,0 +1,118 @@
+<div class="container">
+  <table>
+    <thead></thead>
+    <tbody>
+      <ng-container *ngFor="let comment of comments">
+        <tr class="comment-row">
+          <td>
+            <div class="comment">
+              <div>
+                <img class="user-avatar" [src]="comment.userId.profilePhoto" alt="User Avatar">
+              </div>
+              <div class="comment-time" style="overflow-wrap:break-word;width:215px">
+                <span class="username">{{ comment.userId.username }}:</span>
+                {{ comment.text }}
+                <br>
+                <p style="color: #888;margin:0px">{{ formatTimestamp(comment.timestamp) }}</p>
+              </div>
+               <div class="comment-actions" style="margin-left:30px;">
+				    <div class="dropdown">
+				        <i class="material-icons ellipsis-icon" (click)="toggleCommentDropdown(comment.id)">more_vert</i>
+				        <ul  class="dropdown-content" *ngIf="commentDropdownStatus[comment.id]?.open">
+				            <li *ngIf="currentUser==comment.userId.id">
+				                <a (click)="editComment(comment);closeCommentDropdown(comment.id)" class="edit-link">Edit</a>
+				            </li>
+				            <li *ngIf="currentUser==comment.userId.id">
+				                <a (click)="deleteComment(comment);closeCommentDropdown(comment.id)" class="edit-link">Delete</a>
+				            </li>
+				            <li>
+				                <a (click)="reportuj(comment); closeCommentDropdown(comment.id)" class="edit-link">Report</a>
+				            </li>
+				        </ul>
+				    </div>
+				</div>
+              
+            </div>
+            <div class="actions">
+              <div class="reaction-icons">
+								    <i class="material-icons" (click)="kreirajReakciju('LIKE', null, comment.id)">thumb_up</i>
+								    <span class="reaction-count">{{ comment.likes }}</span>
+								    <i class="material-icons" (click)="kreirajReakciju('DISLIKE', null, comment.id)">thumb_down</i>
+								    <span class="reaction-count">{{ comment.dislikes }}</span>
+								    <i class="material-icons" (click)="kreirajReakciju('HEART', null, comment.id)" >favorite</i>
+									<span class="reaction-count">{{ comment.hearts }}</span>
+								</div>
+            
+		  <div style="padding:0px;margin:0px">
+		    <input style="font-size:12px;width:100px;margin:10px" type="text" [formControl]="replyFormControl3" placeholder="Reply">
+		    <button style="font-size:12px" (click)="addReply3(comment.id)">Reply</button>
+		  </div>
+            </div>
+            <div class="replies">
+              <a class="comment-toggle-link" (click)="toggleReplies(comment)">
+                {{ comment.showReplies ? 'Hide replies' : 'See replies' }}
+              </a>
+              <div *ngIf="comment.showReplies">
+                <div *ngFor="let reply of comment.repliesComment" >
+                <div class="comment">
+                  <div>
+                    <img class="user-avatar" [src]="reply.userId.profilePhoto" alt="User Avatar">
+                  </div>
+                  <div class="comment-time" style="overflow-wrap:break-word;width:215px">
+                    <span class="username">{{ reply.userId.username }}:</span>
+                    {{ reply.text }}
+                    <br>
+                    <p style="color: #888;margin:0px">{{ formatTimestamp(reply.timestamp) }}</p>
+                  </div>
+                  
+                   <div class="comment-actions">
+				    <div class="dropdown">
+				        <i class="material-icons ellipsis-icon" (click)="toggleCommentDropdown(reply.id)">more_vert</i>
+				        <ul  class="dropdown-content" *ngIf="commentDropdownStatus[reply.id]?.open">
+				            <li *ngIf="currentUser==reply.userId.id">
+				                <a (click)="editComment(reply);closeCommentDropdown(reply.id)" class="edit-link">Edit</a>
+				            </li>
+				            <li *ngIf="currentUser==reply.userId.id">
+				                <a (click)="deleteComment2(reply);closeCommentDropdown(reply.id)" class="edit-link">Delete</a>
+				            </li>
+				            <li>
+				                <a (click)="reportuj(reply); closeCommentDropdown(reply.id)" class="edit-link">Report</a>
+				            </li>
+				        </ul>
+				    </div>
+				</div>
+				</div>
+                 <div class="actions"> 
+                  <div class="reaction-icons">
+								    <i class="material-icons" (click)="kreirajReakciju2('LIKE', null, reply.id)">thumb_up</i>
+								    <span class="reaction-count">{{ reply.likes }}</span>
+								    <i class="material-icons" (click)="kreirajReakciju2('DISLIKE', null, reply.id)">thumb_down</i>
+								    <span class="reaction-count">{{ reply.dislikes }}</span>
+								    <i class="material-icons" (click)="kreirajReakciju2('HEART', null, reply.id)" >favorite</i>
+									<span class="reaction-count">{{ reply.hearts }}</span>
+								</div>
+                  
+                  
+			  <div style="padding:0px">
+			    <input style="font-size:12px;width:100px;margin:10px" type="text" [formControl]="replyFormControl4" placeholder="Reply">
+			    <button style="font-size:12px" (click)="addReply4(reply.id)">Reply</button>
+			  </div>
+			  
+			  </div>
+                    <ng-container >
+				                 <a style="margin-left:20px;border-left: 1px solid #ccc;padding-left: 10px;" class="comment-toggle-link" (click)="toggleReplies(reply)">
+			                        {{ reply.showReplies ? 'Hide replies' : 'See replies' }}
+			                    </a>
+				                <div *ngIf="reply.repliesComment && reply.repliesComment.length > 0 && reply.showReplies" class="reply-level">
+				                    <app-comment-list [comments]="reply.repliesComment" [currentUser]="currentUser" [parentPost]="parentPost"></app-comment-list>
+				                </div>
+				            </ng-container>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </ng-container>
+    </tbody>
+  </table>
+</div>

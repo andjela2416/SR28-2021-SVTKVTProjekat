@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators,FormControl } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Subject } from 'rxjs/Subject';
@@ -6,6 +6,7 @@ import { takeUntil } from 'rxjs/operators';
 import { PostService } from 'src/app/service/post.service';
 import { UserService } from 'src/app/service/user.service';
 import { AuthService } from 'src/app/service/auth.service';
+import { ChangeDetectorRef } from '@angular/core';
 
 interface DisplayMessage {
   msgType: string;
@@ -20,6 +21,7 @@ export interface Post {
 @Component({
   selector: 'app-post-list',
   templateUrl: './post-list.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['./post-list.component.css']
 })
 export class PostListComponent implements OnInit {
@@ -38,6 +40,7 @@ export class PostListComponent implements OnInit {
   submitted = false;
 
   constructor(
+	private cdr: ChangeDetectorRef,
     private postService: PostService,
     private userService: UserService,
     private formBuilder: FormBuilder,
@@ -67,10 +70,15 @@ getPosts() {
 
   
   deletePost(postId: number) {
-    console.log(postId+"a") 
-    this.postService.delete(postId).subscribe((posts) => {this.postService.getAllFromUser()});
+  console.log(postId);
+  this.postService.delete(postId).subscribe(() => {
+    this.postService.getAllFromUser().subscribe((posts) => {
+      this.posts = posts; 
+        this.cdr.detectChanges();
+    });
+  });
+}
 
-  }
   
 getImagesSize1(images: any): string[] {
   const imagePaths2: string[] = [];
@@ -92,14 +100,15 @@ getImagesSize2(post: any): string[] {
   return imagePaths;
 }
 
+send(){
+	    const editFormElement = document.getElementById('edit-form');
+	if (editFormElement) {
+	    editFormElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+	}
+}
+
   editPost(postId, postContent,postImages) {
     this.editing = true;
-    this.route.params
-      .pipe(takeUntil(this.ngUnsubscribe))
-      .subscribe((params: DisplayMessage) => {
-        this.notification = params;
-      });
-    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
     this.form = this.formBuilder.group({
       id: postId,
       content: ['', Validators.compose([Validators.required])],
@@ -111,37 +120,30 @@ getImagesSize2(post: any): string[] {
     
     this.form.get("images").setValue(this.getImagesPathString(postImages));
     console.log(this.getImagesPathString(postImages));
+    this.send();
   }
 
     onSubmit() {
+	  
 	if (this.authService.tokenIsPresent()) {
 		 if (!this.form.value.content){
 			 alert('Tekst je obavezno polje objave');
 		}else{
     this.submitted = true;
     console.warn('Your order has been submitted', this.form.value);
-    console.log(this.form.value+"dsehduhe");
-     this.postService.edit(this.form.value)
-        .subscribe(res => {
-		console.log(res);
-          this.forgeResonseObj(this.OnePostResponse, res, "api/posts/edit");
-          this.getPosts();
-         /* this.posts = this.posts.map(post => {
-    if (post.id === postId) {
-      return { ...post, content: this.form.value.content, images: this.form.value.images };
-    } else {
-      return post;
-    }
-  });*/
-  this.editing = false;
-        }, err => {
-          this.forgeResonseObj(this.OnePostResponse, err, "api/posts/edit");
-        });
+    
+     this.postService.edit(this.form.value).subscribe(() => {
+    this.postService.getAllFromUser().subscribe((posts) => {
+      this.posts = posts; 
+      this.editing=false;
+        this.cdr.detectChanges();
+    });
+  })
 
 	this.form.patchValue({
-  content: '',
-  images: ''
-});;}
+  	content: '',
+ 	images: ''
+	});;}
 	
 }
 	 else {

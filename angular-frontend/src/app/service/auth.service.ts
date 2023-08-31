@@ -8,6 +8,9 @@ import { Router } from '@angular/router';
 import { of } from 'rxjs/internal/observable/of';
 import { Observable } from 'rxjs';
 import { _throw } from 'rxjs/observable/throw';
+import { tap } from 'rxjs/operators';
+
+
 
 @Injectable()
 export class AuthService {
@@ -16,30 +19,47 @@ export class AuthService {
     private apiService: ApiService,
     private userService: UserService,
     private config: ConfigService,
-    private router: Router
+    private router: Router,
+
   ) {
   }
 
   private access_token = null;
+  
 
   login(user) {
-    const loginHeaders = new HttpHeaders({
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE',
+  const loginHeaders = new HttpHeaders({
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE',
     'Access-Control-Allow-Origin': 'http://localhost:4200'
-    });
-    // const body = `username=${user.username}&password=${user.password}`;
-    const body = {
-      'username': user.username,
-      'password': user.password
-    };
-    return this.apiService.post(this.config.login_url, JSON.stringify(body), loginHeaders)
-      .pipe(map((res) => {
+  });
+
+  const body = {
+    'username': user.username,
+    'password': user.password
+  };
+
+  return this.apiService.post(this.config.login_url, JSON.stringify(body), loginHeaders)
+    .pipe(
+      tap((res) => {
         console.log('Login success');
         this.access_token = res.accessToken;
-        localStorage.setItem("jwt", res.accessToken)
-      }));
+        localStorage.setItem("jwt", res.accessToken);
+
+        // Preusmeravanje na /posts nakon uspešne prijave
+        this.router.navigate(['/allPosts']);
+      })
+    );
+}
+
+    changePassword(body) {
+    console.log(JSON.stringify(body))
+    return this.apiService.put(this.config.change_pass_url, JSON.stringify(body))
+      .pipe(map(() => {
+        console.log("Change success");
+      }))
+
   }
 
   signup(user) {
@@ -65,9 +85,10 @@ export class AuthService {
   tokenIsPresent() {
     return this.access_token != undefined && this.access_token != null;
   }
-
+  
   getToken() {
     return this.access_token;
   }
+  
 
 }

@@ -1,0 +1,254 @@
+<div class="centered-container">
+	<form [formGroup]="forma" (ngSubmit)="onSubmitPostavi()">
+	<div class="container2">
+  	<textarea class="t" type="text" formControlName="post" placeholder="Text" name="post" required></textarea>
+  	<br>
+  	<textarea class="t" type="text" formControlName="pathSlike" placeholder="Image path"  name="pathSlike" required></textarea> 
+  	<br>
+  	<button class="dugmePostavi" type="submit">Post</button>
+  	<br>
+	</div>
+	</form>
+	</div>
+	
+	 <button class="dugme" style="margin-bottom:10px" (click)="praviGrupu()">Napravi grupu</button>
+ <div *ngIf="createGroup" class="centered-container">
+<form [formGroup]="form6" (ngSubmit)="napraviGrupu()">
+<div  class="container">
+  <textarea class="b" type="text" formControlName="name" placeholder="Ime grupe" name="name" required></textarea>
+  <br>
+  <textarea class="b" type="text" formControlName="description" placeholder="Opis grupe"  name="description" required></textarea> 
+  <br>
+  <button class="dugmePostavi" type="submit">Kreiraj</button>
+  <button class="dugme" (click)="cancel()">Odustani</button>
+  <br>
+</div>
+</form></div>
+	
+<div>
+  <label for="sortSelect" style="font-size:14px">Sortiranje postova:</label>
+  <select id="sortSelect" (change)="sortPosts($event.target.value)">
+   	<option disabled selected>Odaberite</option>
+    <option value="new">Datum objavljivanja (Najskorije)</option>
+    <option value="old">Datum objavljivanja (Najstarije)</option>
+  </select>
+</div>
+
+<div class="container">
+<table>
+  <thead></thead>
+  <tbody >
+    <ng-container *ngFor="let post of posts; let i = index">
+    <tr class="post-row">
+        <td class="s" >
+            <div class="user-info">
+                <div class="avatar-container">
+                    <img class="user-avatar1" [src]="post.postedBy.profilePhoto" alt="User Avatar">
+                </div>
+                <div class="comment-time">
+	                <span class="username1">{{ post.postedBy.username }}</span>
+		            <p style="color: #888;margin:0px"> {{ formatTimestamp(post.creationDate) }}</p>
+            	</div>
+            </div>
+            <div class="post-content">
+                {{ post.content }}
+            </div>
+        </td>
+    </tr>
+      <tr class="post-row" >
+        <td >
+          <ng-container *ngFor="let imagePath of getImagesSize2(post)">
+            <img class="s" [src]="imagePath" alt="Slika">
+          </ng-container>
+        </td>
+      </tr>
+	<tr class="comment-row1">
+    <td>
+    	 <div class="reaction-icons">
+		    <i class="material-icons" (click)="kreirajReakciju('LIKE', post.id, null)">thumb_up</i>
+		     <span class="reaction-count">{{ post.likes }}</span>
+		    <i class="material-icons" (click)="kreirajReakciju('DISLIKE', post.id, null)">thumb_down</i>
+		     <span class="reaction-count">{{ post.dislikes }}</span>
+		    <i class="material-icons" (click)="kreirajReakciju('HEART', post.id, null)" >favorite</i>
+		     <span class="reaction-count">{{ post.hearts }}</span>
+		</div>
+
+        <a class="comment-toggle-link" (click)="toggleComments(post.id)" style="margin-top:8px">
+            {{ post.commentsForPost ? 'Hide comments' : 'See comments' }}
+        </a>
+        	    </td>
+	  </tr>
+	  <tr *ngIf="post.commentsForPost && post.comments.length>0" class="comm">
+	  <td style="padding-top:5px">
+	  	<div style="text-align: right;margin-bottom:10px">
+			  <select id="sortSelect" (change)="sortComments($event.target.value,post)">
+			  	<option disabled selected>Sort comments</option>
+			    <option value="likesO">Number of likes(Descending)</option>
+			    <option value="likesR">Number of likes(Ascending)</option>
+			    <option value="dislikesO">Number of dislikes(Descending)</option>
+			    <option value="dislikesR">Number of dislikes(Ascending)</option>
+			    <option value="heartsO">Number of hearts(Descending)</option>
+			    <option value="heartsR">Number of hearts(Ascending)</option>
+			    <option value="new">Date(Most recent)</option>
+			    <option value="old">Date(Least recent)</option>
+			  </select>
+			</div>
+        <div style="text-align: left" class="comment-container">
+            <div *ngFor="let comment of post.comments">
+                <div class="comment">
+                    <div style="margin-left:15px">
+                        <img class="user-avatar" [src]="comment.userId.profilePhoto" alt="User Avatar">
+                    </div>
+                    <div class="comment-time" style="overflow-wrap:break-word;width:300px">
+                        <span class="username">{{ comment.userId.username }}:</span>
+                        {{ comment.text }}
+                        <p style="color: #888;margin:0px"> {{ formatTimestamp(comment.timestamp) }}</p>
+                    </div>	
+                 <div class="comment-actions">
+				    <div class="dropdown">
+				        <i class="material-icons ellipsis-icon" (click)="toggleCommentDropdown(comment.id)">more_vert</i>
+				        <ul  class="dropdown-content" *ngIf="commentDropdownStatus[comment.id]?.open">
+				            <li *ngIf="currentUser==comment.userId.id">
+				                <a (click)="editComment(post,comment);closeCommentDropdown(comment.id)" class="edit-link">Edit</a>
+				            </li>
+				            <li *ngIf="currentUser==comment.userId.id">
+				                <a (click)="confirmDeleteComment(post,comment);closeCommentDropdown(comment.id)" class="edit-link">Delete</a>
+				            </li>
+				            <li>
+				                <a (click)="toggleReportMenu()" class="edit-link">Report</a>
+				            	<div *ngIf="isReportMenuOpen" class="report-reasons-dropdown">
+							        <ul class="report-reasons-list">
+							          <li *ngFor="let reason of reportReasons" (click)="selectReportReason(comment,reason)">{{ reason }}</li>
+							        </ul>
+							      </div>
+				            </li>
+				        </ul>
+				    </div>
+				</div>
+
+                </div>
+                
+              <div class="actions"> 
+              	<div class="reaction-icons2">
+					    <i class="material-icons" (click)="kreirajReakciju2('LIKE', null, comment.id)">thumb_up</i>
+					    <span class="reaction-count">{{ comment.likes }}</span>
+					    <i class="material-icons" (click)="kreirajReakciju2('DISLIKE', null, comment.id)">thumb_down</i>
+					    <span class="reaction-count">{{ comment.dislikes }}</span>
+					    <i class="material-icons" (click)="kreirajReakciju2('HEART', null, comment.id)">favorite</i>
+						<span class="reaction-count">{{ comment.hearts }}</span>
+					</div>
+
+              
+              
+			  <div style="padding:0px;margin:0px">
+			    <input type="text" style="font-size:12px" [formControl]="replyFormControl" placeholder="Reply">
+			    <button (click)="addReply(comment.id)" style="font-size:12px">Reply</button>
+			  </div>
+			   
+                </div> 
+                
+                <div class="replies">
+                    <a class="comment-toggle-link" (click)="toggleReplies(comment)">
+                        {{ comment.showReplies ? 'Hide replies' : 'See replies' }}
+                    </a>
+                    <div *ngIf="comment.showReplies">
+                        <div *ngFor="let reply of comment.repliesComment" >
+                        <div class="comment">
+                            <div>
+                                <img class="user-avatar" [src]="reply.userId.profilePhoto" alt="User Avatar">
+                            </div>
+                            <div class="comment-time" style="overflow-wrap:break-word;width:250px">
+                                <span class="username">{{ reply.userId.username }}:</span>
+                                {{ reply.text }}
+                                <br>
+                                <p style="color: #888;margin:0px"> {{ formatTimestamp(reply.timestamp) }}</p>
+	                            </div>
+	                             <div class="comment-actions2">
+								    <div class="dropdown">
+								        <i class="material-icons ellipsis-icon" (click)="toggleCommentDropdown(reply.id)">more_vert</i>
+								        <ul  class="dropdown-content" *ngIf="commentDropdownStatus[reply.id]?.open">
+								            <li *ngIf="currentUser==reply.userId.id">
+								                <a (click)="editComment2(post,comment,reply);closeCommentDropdown(reply.id)" class="edit-link">Edit</a>
+								            </li>
+								            <li *ngIf="currentUser==reply.userId.id">
+								                <a (click)="confirmDeleteComment2(post,comment,reply);closeCommentDropdown(reply.id)" class="edit-link">Delete</a>
+								            </li>
+								            <li>
+								                <a (click)="reportuj(reply); closeCommentDropdown(reply.id)" class="edit-link">Report</a>
+								            </li>
+								        </ul>
+								    </div>
+								</div>
+
+	                            </div>
+	                  <div class="actions">       
+	                           <div class="reaction-icons2">
+								    <i class="material-icons" (click)="kreirajReakciju3('LIKE', null, reply.id)">thumb_up</i>
+								     <span class="reaction-count">{{reply.likes }}</span>
+								    <i class="material-icons" (click)="kreirajReakciju3('DISLIKE', null,reply.id)">thumb_down</i>
+								     <span class="reaction-count">{{ reply.dislikes }}</span>
+								    <i class="material-icons" (click)="kreirajReakciju3('HEART', null, reply.id)">favorite</i>
+								     <span class="reaction-count">{{ reply.hearts }}</span>
+								</div>        
+	                           
+					  <div style="padding:0px">
+					    <input type="text" style="font-size:12px" [formControl]="replyFormControl2" placeholder="Reply">
+					    <button (click)="addReply2(reply.id)" style="font-size:12px">Reply</button>
+					  </div>
+					  
+					  </div>  
+	                             <ng-container >
+				                 <a style="margin-left:20px;border-left: 1px solid #ccc;padding-left: 10px;" class="comment-toggle-link" (click)="toggleReplies(reply)">
+			                        {{ reply.showReplies ? 'Hide replies' : 'See replies' }}
+			                    </a>
+				                <div *ngIf="reply.repliesComment && reply.repliesComment.length > 0 && reply.showReplies" class="reply-level">
+				                    <app-comment-list [comments]="reply.repliesComment" [parentPost]="post" [currentUser]="currentUser"></app-comment-list>
+				                </div>
+				            </ng-container>
+	                        </div>
+	                    </div>
+	                </div>
+	            </div>
+	        </div>
+	    </td>
+	  </tr>
+
+      <tr class="comment-row" style="padding:0px">
+        <td class="comment-cell" style="padding:0px;margin:0px">
+          <input type="text" [formControl]="commentFormControl" placeholder="Add comment">
+          <button (click)="addComment(post.id)">Add comment</button>
+        </td>
+      </tr>
+      
+      <tr>
+      <td style="padding:0px">
+      	<div *ngIf="editingComment && selectedPostForEditing === post">
+		    <form [formGroup]="editCommentForm" (ngSubmit)="saveEditedComment()">
+		        <label class="edit-label" for="text">Edit comment:</label>
+		        <textarea id="text" formControlName="text"></textarea>
+		        <div style="display:block">
+		        <button style="margin-right:5px" type="submit">Submit</button>
+		        <button type="button" (click)="cancelEdit()">Cancel</button>
+		        </div>
+		    </form>
+		</div>
+		<div *ngIf="editingComment2 && selectedPostForEditing2 === post">
+		    <form [formGroup]="editCommentForm2" (ngSubmit)="saveEditedComment2()" >
+		        <label for="text" class="edit-label" >Edit comment:</label>
+		        <textarea id="text" formControlName="text"></textarea>
+		        <div style="display:block">
+		        <button style="margin-right:5px" type="submit" >Submit</button>
+		        <button type="button" (click)="cancelEdit2()">Cancel</button>
+		        </div>
+		    </form>
+		</div>
+      </td>
+      </tr>
+      <tr style="height:30px">
+      </tr>
+    </ng-container>
+    
+  </tbody>
+</table>
+
+</div>

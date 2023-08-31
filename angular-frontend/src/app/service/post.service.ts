@@ -25,10 +25,22 @@ export class PostService {
   getAll() {
     return this.apiService.get(this.config.posts_url);
   }
+   getAllRndm() {
+    return this.apiService.get(this.config.posts_random_url);
+  }
   
   getAllFromUser() {
     return this.apiService.get(this.config.postsFromUser_url);
   }
+  
+    getCountReactions(post:any) {
+    return this.apiService.get(this.config.reactionsForPost_url+"?id="+post);
+  }
+  
+    getAllUserComments() {
+    return this.apiService.get(this.config.userComments_url);
+  }
+  
   edit1(post){
 	const imageArray = post.pathSlike.split(',').map(path => ({ path: path }));
 	const body = {
@@ -42,22 +54,7 @@ export class PostService {
         this.router.navigate(['/posts']);}); 
     }))
   }
-edit(post) {
-  let imageArray: { path: string }[] = [];
-  if (post.images) {
-    imageArray = post.images.split(',').map((path: string) => ({ path }));
-  }
-  
-  const body = {
-    'id': post.id,
-    'content': post.content,
-    'images': imageArray
-  };
 
-  console.log(body);
-
-  return this.apiService.put(this.config.post_url+"/edit", JSON.stringify(body));
-}
 react(react) {
   
    const novaReakcija = {
@@ -118,12 +115,8 @@ return this.apiService.put(this.config.post_url+"/edit", JSON.stringify(body))
 
   delete(postId){
 	console.log("De"+postId);
-    return this.apiService.delete(this.config.post_url+ "/delete?id=" + postId)
-    .pipe(map(() => {
-      console.log("Delete success");
-      this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
-        this.router.navigate(['/posts']);}); 
-    }))
+    return this.apiService.delete(this.config.post_url+ "/delete/"+postId ,JSON.stringify(postId))
+    
   }
   
  getOnePost(id: number) {
@@ -154,6 +147,8 @@ getOnePost2(id: number): Observable<any> {
   		'content': post.post,
   		'images': imageArray
 	};
+	
+	
     return this.apiService.post(this.config.post_url + "/create", JSON.stringify(body))
      .subscribe((res) => {
         if(res.body == "NOT_ACCEPTABLE" || res.name == "HttpErrorResponse")
@@ -177,7 +172,22 @@ getOnePost2(id: number): Observable<any> {
 
   return this.apiService.post(this.config.post_url + "/create", JSON.stringify(body));
 }
+edit(post) {
+  let imageArray: { path: string }[] = [];
+  if (post.images) {
+    imageArray = post.images.split(',').map((path: string) => ({ path }));
+  }
+  
+  const body = {
+    'id': post.id,
+    'content': post.content,
+    'images': imageArray
+  };
 
+  console.log(body);
+
+  return this.apiService.put(this.config.post_url+"/edit", JSON.stringify(body));
+}
 
  create(values:any) {
     const loginHeaders = new HttpHeaders({
@@ -185,10 +195,43 @@ getOnePost2(id: number): Observable<any> {
       'Content-Type': 'application/json'
     });
     // const body = `username=${user.username}&password=${user.password}`;
-  	const imageArray = values.pathSlike.split(',').map(path => ({ path: path }));
+     let imageArray: { path: string }[] = [];
+     if (values.pathSlike) {
+  imageArray = values.pathSlike.split(',').map(path => ({ path: path }));}
 	const body = {
   		'content': values.post,
   		'images': imageArray
+	};
+    console.log(body);
+    return this.apiService.post(this.config.postcreate_url, JSON.stringify(body), loginHeaders)
+     /* .subscribe((res) => {
+        if(res.body == "NOT_ACCEPTABLE" || res.name == "HttpErrorResponse")
+        {
+          alert("try again")
+        }else {
+          alert("Uspesno ste postavili objavu");
+         
+          let returnUrl : String;
+          returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/allPosts';
+          this.router.navigate([returnUrl + ""]);
+        }
+      })*/;
+  }
+   create4(values:any,group:any) {
+    const loginHeaders = new HttpHeaders({
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    });
+    // const body = `username=${user.username}&password=${user.password}`;
+  	let imageArray = [];
+if (values.pathSlike) {
+  imageArray = values.pathSlike.split(',').map(path => ({ path: path }));
+}
+
+	const body = {
+  		'content': values.post,
+  		'images': imageArray,
+  		'group':group
 	};
     console.log(body);
     return this.apiService.post(this.config.postcreate_url, JSON.stringify(body), loginHeaders)
@@ -203,5 +246,31 @@ getOnePost2(id: number): Observable<any> {
           this.router.navigate([returnUrl + ""]);
         }
       });
+  }
+  
+ create2(values:any) {
+    const loginHeaders = new HttpHeaders({
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    });
+    // const body = `username=${user.username}&password=${user.password}`;
+  	const imageArray = values.pathSlike.split(',').map(path => ({ path: path }));
+	const body = {
+  		'content': values.post,
+  		'images': imageArray
+	};
+    console.log(body);
+    return this.apiService.post(this.config.postcreate2_url, JSON.stringify(body), loginHeaders)
+      /*.subscribe((res) => {
+        if(res.body == "NOT_ACCEPTABLE" || res.name == "HttpErrorResponse")
+        {
+          alert("try again")
+        }else {
+          alert("Uspesno ste postavili objavu");
+          let returnUrl : String;
+          returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+          this.router.navigate([returnUrl + ""]);
+        }
+      });*/
   }
 }
