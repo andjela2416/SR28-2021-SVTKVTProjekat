@@ -2,9 +2,8 @@
     <h1>List of your posts</h1>
     <div class="row">
         <div class="col">
-            <app-post-list [posts]="postList"></app-post-list>
+            <app-allPost-list [posts]="postList" [your]="your"></app-allPost-list>
         </div>
     </div>
-    <button id="dugme" (click)="navigateTo()">Create Post</button>
     <button id="dugme" (click)="goBack()">Go Back</button>
 </div>

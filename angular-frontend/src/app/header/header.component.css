@@ -28,6 +28,28 @@
     display: none;
   }
 
+
+.search-results {
+  background-color: #fff; 
+  border: 1px solid #ccc; 
+  padding: 5px;
+  position: absolute; 
+  z-index: 1000;
+  margin-top:-15px;
+}
+
+.search-results ul {
+  list-style-type: none;
+  padding: 0;
+  width:170px;
+  margin:0px;
+}
+
+.search-results li {
+  margin: 0px;
+  color:black;
+  font-size:14px;
+}
   
   
   

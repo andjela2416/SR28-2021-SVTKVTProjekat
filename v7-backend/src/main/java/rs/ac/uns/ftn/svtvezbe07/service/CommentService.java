@@ -13,7 +13,7 @@ public interface CommentService {
 	    
 	  	Comment save (Comment post);
 
-	  	Comment findCommentById(Integer id);
+	  	Comment findCommentById(Long id);
 
 	  	Comment findComment(Long id);
 

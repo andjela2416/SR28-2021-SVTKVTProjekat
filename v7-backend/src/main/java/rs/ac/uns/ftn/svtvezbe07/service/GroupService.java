@@ -15,7 +15,7 @@ public interface GroupService {
     
     Group save (Group g);
 
-	Group findGroupById(Long id);
+	Group findByGroup(Group g);
 
 	Group findGroup(Long id);
 

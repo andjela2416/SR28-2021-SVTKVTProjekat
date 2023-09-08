@@ -1,4 +1,4 @@
-<div class="centered-container">
+<div *ngIf="!grupa" class="centered-container">
 	<form [formGroup]="forma" (ngSubmit)="onSubmitPostavi()">
 	<div class="container2">
   	<textarea class="t" type="text" formControlName="post" placeholder="Text" name="post" required></textarea>
@@ -11,7 +11,20 @@
 	</form>
 	</div>
 	
-	 <button class="dugme" style="margin-bottom:10px" (click)="praviGrupu()">Napravi grupu</button>
+<div *ngIf="grupa" class="centered-container">
+	<form [formGroup]="forma2" (ngSubmit)="onSubmitPostavi2()">
+	<div class="container2">
+  	<textarea class="t" type="text" formControlName="post" placeholder="Text" name="post" required></textarea>
+  	<br>
+  	<textarea class="t" type="text" formControlName="pathSlike" placeholder="Image path"  name="pathSlike" required></textarea> 
+  	<br>
+  	<button class="dugmePostavi" type="submit">Post in group</button>
+  	<br>
+	</div>
+	</form>
+	</div>
+	
+<!--  	 <button class="dugme" style="margin-bottom:10px" (click)="praviGrupu()">Napravi grupu</button>
  <div *ngIf="createGroup" class="centered-container">
 <form [formGroup]="form6" (ngSubmit)="napraviGrupu()">
 <div  class="container">
@@ -19,18 +32,19 @@
   <br>
   <textarea class="b" type="text" formControlName="description" placeholder="Opis grupe"  name="description" required></textarea> 
   <br>
-  <button class="dugmePostavi" type="submit">Kreiraj</button>
+  <button class="dugmePostavi2" type="submit">Kreiraj</button>
   <button class="dugme" (click)="cancel()">Odustani</button>
   <br>
 </div>
-</form></div>
+</form></div> 
+-->
 	
 <div>
-  <label for="sortSelect" style="font-size:14px">Sortiranje postova:</label>
+  <label for="sortSelect" style="font-size:14px">Sort posts:</label>
   <select id="sortSelect" (change)="sortPosts($event.target.value)">
-   	<option disabled selected>Odaberite</option>
-    <option value="new">Datum objavljivanja (Najskorije)</option>
-    <option value="old">Datum objavljivanja (Najstarije)</option>
+   	<option disabled selected>Select</option>
+    <option value="new">Posted on date (most recent)</option>
+    <option value="old">Posted on date (least recent)</option>
   </select>
 </div>
 
@@ -41,18 +55,45 @@
     <ng-container *ngFor="let post of posts; let i = index">
     <tr class="post-row">
         <td class="s" >
+        	<div style="display: flex;align-items: center;position: relative;">
+        	<div  style="width: 376px">
             <div class="user-info">
                 <div class="avatar-container">
                     <img class="user-avatar1" [src]="post.postedBy.profilePhoto" alt="User Avatar">
                 </div>
                 <div class="comment-time">
-	                <span class="username1">{{ post.postedBy.username }}</span>
+	                <span class="username1">
+	                <a [routerLink]="['/profile', post.postedBy.id]">{{ post.postedBy.displayName }}</a>
+	                </span>
 		            <p style="color: #888;margin:0px"> {{ formatTimestamp(post.creationDate) }}</p>
             	</div>
             </div>
-            <div class="post-content">
+            <div class="post-content" style="overflow-wrap:break-word;width:300px">
                 {{ post.content }}
             </div>
+            </div>
+            <div class="comment-actions">
+	        <div class="dropdown">
+	          <i class="material-icons ellipsis-icon" (click)="togglePostDropdown({ id: post.id, type: 'post' })">more_vert</i>
+	          <ul class="dropdown-content" *ngIf="postDropdownStatus[post.id]?.open && postDropdownStatus[post.id]?.type === 'post'">
+	            <li *ngIf="your && currentUser == post.postedBy.id">
+	              <a (click)="editPost(post); closePostDropdown(post.id)" class="edit-link">Edit</a>
+	            </li>
+	            <li *ngIf="your && currentUser == post.postedBy.id">
+	              <a (click)="confirmDeletePost(post); closePostDropdown(post.id)" class="edit-link">Delete</a>
+	            </li>
+	            <li>
+	              <a (click)="toggleReportMenu()" class="edit-link">Report post</a>
+	              <div *ngIf="isReportMenuOpen" class="report-reasons-dropdown">
+	                <ul class="report-reasons-list">
+	                  <li *ngFor="let reason of reportReasons" (click)="selectReportReason(post, reason)">{{ reason }}</li>
+	                </ul>
+	              </div>
+	            </li>
+	          </ul>
+	        </div>
+	      </div>
+	      </div>
         </td>
     </tr>
       <tr class="post-row" >
@@ -95,19 +136,22 @@
 			</div>
         <div style="text-align: left" class="comment-container">
             <div *ngFor="let comment of post.comments">
-                <div class="comment">
+            <div *ngIf="!comment.deleted">
+                <div class="comment" >
                     <div style="margin-left:15px">
                         <img class="user-avatar" [src]="comment.userId.profilePhoto" alt="User Avatar">
                     </div>
                     <div class="comment-time" style="overflow-wrap:break-word;width:300px">
-                        <span class="username">{{ comment.userId.username }}:</span>
+                        <span class="username">
+                        <a [routerLink]="['/profile', comment.userId.id]">{{ comment.userId.displayName }}:</a>
+                        </span>
                         {{ comment.text }}
                         <p style="color: #888;margin:0px"> {{ formatTimestamp(comment.timestamp) }}</p>
                     </div>	
                  <div class="comment-actions">
 				    <div class="dropdown">
-				        <i class="material-icons ellipsis-icon" (click)="toggleCommentDropdown(comment.id)">more_vert</i>
-				        <ul  class="dropdown-content" *ngIf="commentDropdownStatus[comment.id]?.open">
+				        <i class="material-icons ellipsis-icon" (click)="toggleCommentDropdown({ id: comment.id, type: 'comment' })">more_vert</i>
+				        <ul  class="dropdown-content" *ngIf="commentDropdownStatus[comment.id]?.open && commentDropdownStatus[comment.id]?.type === 'comment'">
 				            <li *ngIf="currentUser==comment.userId.id">
 				                <a (click)="editComment(post,comment);closeCommentDropdown(comment.id)" class="edit-link">Edit</a>
 				            </li>
@@ -115,10 +159,10 @@
 				                <a (click)="confirmDeleteComment(post,comment);closeCommentDropdown(comment.id)" class="edit-link">Delete</a>
 				            </li>
 				            <li>
-				                <a (click)="toggleReportMenu()" class="edit-link">Report</a>
-				            	<div *ngIf="isReportMenuOpen" class="report-reasons-dropdown">
+				                <a (click)="toggleReportMenu2()" class="edit-link">Report</a>
+				            	<div *ngIf="isReportMenuOpen2" class="report-reasons-dropdown">
 							        <ul class="report-reasons-list">
-							          <li *ngFor="let reason of reportReasons" (click)="selectReportReason(comment,reason)">{{ reason }}</li>
+							          <li *ngFor="let reason of reportReasons" (click)="selectReportReason2(comment,reason)">{{ reason }}</li>
 							        </ul>
 							      </div>
 				            </li>
@@ -142,7 +186,7 @@
               
 			  <div style="padding:0px;margin:0px">
 			    <input type="text" style="font-size:12px" [formControl]="replyFormControl" placeholder="Reply">
-			    <button (click)="addReply(comment.id)" style="font-size:12px">Reply</button>
+			    <button (click)="addReply(comment.id,post.id)" style="font-size:12px">Reply</button>
 			  </div>
 			   
                 </div> 
@@ -153,28 +197,36 @@
                     </a>
                     <div *ngIf="comment.showReplies">
                         <div *ngFor="let reply of comment.repliesComment" >
-                        <div class="comment">
+                        <div *ngIf="!reply.deleted">
+                        <div class="comment" >
                             <div>
                                 <img class="user-avatar" [src]="reply.userId.profilePhoto" alt="User Avatar">
                             </div>
                             <div class="comment-time" style="overflow-wrap:break-word;width:250px">
-                                <span class="username">{{ reply.userId.username }}:</span>
+                                <span class="username">
+                                <a [routerLink]="['/profile', reply.userId.id]">{{ reply.userId.displayName }}:</a>
+                                </span>
                                 {{ reply.text }}
                                 <br>
                                 <p style="color: #888;margin:0px"> {{ formatTimestamp(reply.timestamp) }}</p>
 	                            </div>
 	                             <div class="comment-actions2">
 								    <div class="dropdown">
-								        <i class="material-icons ellipsis-icon" (click)="toggleCommentDropdown(reply.id)">more_vert</i>
-								        <ul  class="dropdown-content" *ngIf="commentDropdownStatus[reply.id]?.open">
+								        <i class="material-icons ellipsis-icon" (click)="toggleCommentDropdown({ id: reply.id, type: 'comment' })">more_vert</i>
+								        <ul  class="dropdown-content" *ngIf="commentDropdownStatus[reply.id]?.open && commentDropdownStatus[reply.id]?.type === 'comment'">
 								            <li *ngIf="currentUser==reply.userId.id">
 								                <a (click)="editComment2(post,comment,reply);closeCommentDropdown(reply.id)" class="edit-link">Edit</a>
 								            </li>
 								            <li *ngIf="currentUser==reply.userId.id">
 								                <a (click)="confirmDeleteComment2(post,comment,reply);closeCommentDropdown(reply.id)" class="edit-link">Delete</a>
 								            </li>
-								            <li>
-								                <a (click)="reportuj(reply); closeCommentDropdown(reply.id)" class="edit-link">Report</a>
+								              <li>
+								                <a (click)="toggleReportMenu2()" class="edit-link">Report</a>
+								            	<div *ngIf="isReportMenuOpen2" class="report-reasons-dropdown">
+											        <ul class="report-reasons-list">
+											          <li *ngFor="let reason of reportReasons" (click)="selectReportReason2(reply,reason)">{{ reason }}</li>
+											        </ul>
+											      </div>
 								            </li>
 								        </ul>
 								    </div>
@@ -193,7 +245,7 @@
 	                           
 					  <div style="padding:0px">
 					    <input type="text" style="font-size:12px" [formControl]="replyFormControl2" placeholder="Reply">
-					    <button (click)="addReply2(reply.id)" style="font-size:12px">Reply</button>
+					    <button (click)="addReply2(reply.id,post.id)" style="font-size:12px">Reply</button>
 					  </div>
 					  
 					  </div>  
@@ -207,8 +259,10 @@
 				            </ng-container>
 	                        </div>
 	                    </div>
+	                    </div>
 	                </div>
 	            </div>
+	        </div>
 	        </div>
 	    </td>
 	  </tr>
@@ -242,6 +296,22 @@
 		        </div>
 		    </form>
 		</div>
+		<div *ngIf="editingPostDiv && selectedPostForEditing === post" id="edit-form">
+			<div class="containerPost" >
+			    <form (ngSubmit)="onSubmitEdit()" [formGroup]="editPostForm">
+			        <label for="cont_i" name="cont_f">Content</label>
+			        <br>
+			        <textarea id="cont_i" type="text" formControlName="content" required></textarea>
+			        <br>
+			        <label for="path_i" name="path_f">Paths of images</label>
+			      <br>
+			   <textarea type="text" formControlName="images" name="images" required></textarea>
+			        <br>
+			        <button type="submit">Save</button>
+			        <button type="button" (click)="cancelEdit3()">Cancel</button>
+			    </form>
+			</div>
+			</div>
       </td>
       </tr>
       <tr style="height:30px">

@@ -5,6 +5,7 @@ import rs.ac.uns.ftn.svtvezbe07.model.entity.Group;
 import rs.ac.uns.ftn.svtvezbe07.model.entity.User;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public interface UserService {
@@ -20,5 +21,6 @@ public interface UserService {
     public Set<Group> getUserGroups(Integer userId)
 ;
 
+    Optional<User> findById(Integer userId);
 }
 

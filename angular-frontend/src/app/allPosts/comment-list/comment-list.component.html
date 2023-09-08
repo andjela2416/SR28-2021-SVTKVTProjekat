@@ -3,22 +3,22 @@
     <thead></thead>
     <tbody>
       <ng-container *ngFor="let comment of comments">
-        <tr class="comment-row">
-          <td>
-            <div class="comment">
+        <tr class="comment-row" *ngIf="!comment.deleted">
+          <td >
+            <div class="comment" >
               <div>
                 <img class="user-avatar" [src]="comment.userId.profilePhoto" alt="User Avatar">
               </div>
               <div class="comment-time" style="overflow-wrap:break-word;width:215px">
-                <span class="username">{{ comment.userId.username }}:</span>
+                <span class="username">{{ comment.userId.displayName }}:</span>
                 {{ comment.text }}
                 <br>
                 <p style="color: #888;margin:0px">{{ formatTimestamp(comment.timestamp) }}</p>
               </div>
                <div class="comment-actions" style="margin-left:30px;">
 				    <div class="dropdown">
-				        <i class="material-icons ellipsis-icon" (click)="toggleCommentDropdown(comment.id)">more_vert</i>
-				        <ul  class="dropdown-content" *ngIf="commentDropdownStatus[comment.id]?.open">
+				        <i class="material-icons ellipsis-icon" (click)="toggleCommentDropdown({ id: comment.id, type: 'comment' })">more_vert</i>
+				        <ul  class="dropdown-content" *ngIf="commentDropdownStatus[comment.id]?.open && commentDropdownStatus[comment.id]?.type === 'comment'">
 				            <li *ngIf="currentUser==comment.userId.id">
 				                <a (click)="editComment(comment);closeCommentDropdown(comment.id)" class="edit-link">Edit</a>
 				            </li>
@@ -26,7 +26,12 @@
 				                <a (click)="deleteComment(comment);closeCommentDropdown(comment.id)" class="edit-link">Delete</a>
 				            </li>
 				            <li>
-				                <a (click)="reportuj(comment); closeCommentDropdown(comment.id)" class="edit-link">Report</a>
+						      <a (click)="toggleReportMenu()" class="edit-link">Report</a>
+				            	<div *ngIf="isReportMenuOpen" class="report-reasons-dropdown">
+								 <ul class="report-reasons-list">
+								          <li *ngFor="let reason of reportReasons" (click)="selectReportReason(comment,reason)">{{ reason }}</li>
+							        </ul>
+								</div>
 				            </li>
 				        </ul>
 				    </div>
@@ -54,12 +59,13 @@
               </a>
               <div *ngIf="comment.showReplies">
                 <div *ngFor="let reply of comment.repliesComment" >
-                <div class="comment">
+                <div *ngIf="!reply.deleted">
+                <div class="comment" >
                   <div>
                     <img class="user-avatar" [src]="reply.userId.profilePhoto" alt="User Avatar">
                   </div>
                   <div class="comment-time" style="overflow-wrap:break-word;width:215px">
-                    <span class="username">{{ reply.userId.username }}:</span>
+                    <span class="username">{{ reply.userId.displayName }}:</span>
                     {{ reply.text }}
                     <br>
                     <p style="color: #888;margin:0px">{{ formatTimestamp(reply.timestamp) }}</p>
@@ -67,8 +73,8 @@
                   
                    <div class="comment-actions">
 				    <div class="dropdown">
-				        <i class="material-icons ellipsis-icon" (click)="toggleCommentDropdown(reply.id)">more_vert</i>
-				        <ul  class="dropdown-content" *ngIf="commentDropdownStatus[reply.id]?.open">
+				        <i class="material-icons ellipsis-icon" (click)="toggleCommentDropdown({ id: reply.id, type: 'comment' })">more_vert</i>
+				        <ul  class="dropdown-content" *ngIf="commentDropdownStatus[reply.id]?.open && commentDropdownStatus[reply.id]?.type === 'comment'">
 				            <li *ngIf="currentUser==reply.userId.id">
 				                <a (click)="editComment(reply);closeCommentDropdown(reply.id)" class="edit-link">Edit</a>
 				            </li>
@@ -76,8 +82,13 @@
 				                <a (click)="deleteComment2(reply);closeCommentDropdown(reply.id)" class="edit-link">Delete</a>
 				            </li>
 				            <li>
-				                <a (click)="reportuj(reply); closeCommentDropdown(reply.id)" class="edit-link">Report</a>
-				            </li>
+								 <a (click)="toggleReportMenu2()" class="edit-link">Report</a>
+								       	<div *ngIf="isReportMenuOpen2" class="report-reasons-dropdown">
+									        <ul class="report-reasons-list">
+									          <li *ngFor="let reason of reportReasons" (click)="selectReportReason2(reply,reason)">{{ reason }}</li>
+								        </ul>
+								  </div>
+							 </li>
 				        </ul>
 				    </div>
 				</div>
@@ -109,6 +120,7 @@
 				            </ng-container>
                 </div>
               </div>
+            </div>
             </div>
           </td>
         </tr>

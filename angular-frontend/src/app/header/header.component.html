@@ -8,6 +8,28 @@
     </div>
     <div class="right">
         <div fxFlex="1 1 auto" fxLayout="row" fxLayoutAlign="flex-end center">
+            <mat-form-field *ngIf="hasSignedIn()" class="search-field" style="font-size:14px">
+                <input matInput placeholder="Search users and groups" [(ngModel)]="searchKeyword" (keyup)="search()">
+            </mat-form-field>
+            
+       <div class="search-results" *ngIf="hasSignedIn() && (searchResults.users.length > 0 || searchResults.groups.length > 0)">
+		    <div *ngIf="searchResults.users.length > 0">
+	        <ul>
+	            <li *ngFor="let user of searchResults.users">
+	            <a [routerLink]="['/profile', user.id]" (click)="hideSearchResults()">{{ user.firstName }} {{ user.lastName }}</a>
+	            </li>
+	        </ul>
+	    </div>
+	
+	    <div *ngIf="searchResults.groups.length > 0">
+	        <ul>
+	            <li *ngFor="let group of searchResults.groups">
+	                <a [routerLink]="['/group', group.id]" (click)="hideSearchResults()">{{ group.name }}</a>
+	            </li>
+	        </ul>
+    </div>
+		</div>
+            
             <button *ngIf="!hasSignedIn()" mat-button mat-ripple routerLink="/signup">
                 <span>Sign up</span>
             </button>

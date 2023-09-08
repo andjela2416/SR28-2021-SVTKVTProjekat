@@ -1,0 +1,45 @@
+<!-- user-profile.component.html -->
+
+<div class="user-profile">
+<button *ngIf="!isHim && user" class="dugme2" name="Report" (click)="reportuj(selectedReason)">Reportuj</button>
+	 <div *ngIf="!isHim && user" style="margin:15px">
+  <label for="reportSelect" >Odaberite razlog prijave:</label>
+  <select id="reportSelect" [(ngModel)]="selectedReason" >
+    <option value="BREAKES_RULES">Kršenje pravila</option>
+    <option value="HARASSMENT">Zlostavljanje</option>
+    <option value="HATE">Mržnja</option>
+    <option value="SHARING_PERSONAL_INFORMATION">Deljenje ličnih informacija</option>
+    <option value="IMPERSONATION">Uzurpacija</option>
+    <option value="COPYRIGHT_VIOLATION">Kršenje autorskih prava</option>
+    <option value="TRADEMARK_VIOLATION">Kršenje zaštitnog znaka</option>
+    <option value="SPAM">Spam</option>
+    <option value="SELF_HARM_OR_SUICIDE">Samopovređivanje ili samoubistvo</option>
+    <option value="OTHER">Drugo</option>
+    </select>
+	</div>
+  <div class="profile-header" *ngIf="user">
+    <img src="{{ user.profilePhoto }}" alt="Slika korisnika" class="profile-image">
+    <h2 class="profile-name">{{ user.firstName }} {{ user.lastName }}</h2>
+    <p class="profile-username">Username: {{ user.username }}</p>
+    <p class="profile-username">Display Name: {{ user.displayName }}</p>
+    <p class="profile-username">Email: {{ user.email }}</p>
+    <p class="profile-username">Description: {{ user.description }}</p>
+    <p class="profile-username">Last login: {{ formatTimestamp(user.lastLogin) }}</p>
+  </div>
+
+  <div *ngIf="user" class="profile-actions">
+        <button *ngIf="!isFriend && !isHim" class="dugme" (click)="posaljiZahtevZaPrijateljstvo()">
+         {{ isRequestSent ? 'Request sent' : 'Send request' }}</button>
+         
+        <button *ngIf="isFriend && !isHim" class="dugme friends-button">
+	      {{ 'Friends' }} <span class="friends-checkmark">&#10003;</span>
+	    </button>
+         
+	    <button *ngIf="isFriend && !isHim" class="dugme" (click)="ukloniIzPrijatelja()">
+	      {{ 'Remove Friend' }}
+	    </button>
+	    
+  </div>
+
+  <!-- Dodajte ovde ostale informacije o korisniku, kao što su opis, statistike, postovi, itd. -->
+</div>

@@ -54,12 +54,12 @@ public class Group {
 		private boolean isDeleted;
 
 	    @OnDelete(action = OnDeleteAction.CASCADE) 
-	    @JsonIgnoreProperties({"username","friends","groups", "lastName", "firstName","description","password","displayName","lastLogin","role","email"})
+	    @JsonIgnoreProperties({"username","friends","groups", "description","password","lastLogin","role","email"})
 		@JoinColumn(name="user_id")
 		@ManyToOne(fetch = FetchType.EAGER)
 		private User groupAdmin;
 	    
-	    @JsonIgnore
+	    @JsonIgnoreProperties({"friends","groups", "lastName", "firstName","description","password","lastLogin","role"})
 	    @ManyToMany(fetch = FetchType.EAGER)
 	    @JoinTable(
 	        name = "group_members",

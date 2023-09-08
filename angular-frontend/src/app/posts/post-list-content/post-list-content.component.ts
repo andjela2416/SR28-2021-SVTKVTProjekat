@@ -9,8 +9,8 @@ import { AuthService } from 'src/app/service/auth.service';
   styleUrls: ['./post-list-content.component.css']
 })
 export class PostListContentComponent implements OnInit {
-  postList: any[]
-
+  postList: any[];
+  your=true;
   constructor(
     private postService:PostService,
     private router:Router,

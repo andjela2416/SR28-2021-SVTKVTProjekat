@@ -43,8 +43,20 @@ public class GroupRequest {
 
     @OneToOne
     @JoinColumn(name = "group_id")
-    @JsonIgnoreProperties({"groupAdmin","posts"})
+    @JsonIgnoreProperties({"posts"})
     private Group group;
+    
+    @Column(columnDefinition = "BOOL",name="isdeleted")
+	private boolean isDeleted;
+    
+    
+    
+	public boolean isDeleted() {
+		return isDeleted;
+	}
+	public void setDeleted(boolean isDeleted) {
+		this.isDeleted = isDeleted;
+	}
 	public Long getId() {
 		return id;
 	}

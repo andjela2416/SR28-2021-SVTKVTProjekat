@@ -70,7 +70,7 @@ public class CommentServiceImpl implements CommentService{
         return null;
     }
     
-    public Comment findCommentById(Integer id) {
+    public Comment findCommentById(Long id) {
         Comment Comment = commentRepository.findCommentById(id);
         if(Comment!=null){
             return Comment;
@@ -80,7 +80,10 @@ public class CommentServiceImpl implements CommentService{
     }
     @Override
     public void delete(Long idInt) {
-        
+    	Integer intV = idInt.intValue();
+    	Comment g= commentRepository.findCommentById(idInt);
+	       	g.setDeleted(true);
+	       	commentRepository.save(g);
     }
 
 	@Override

@@ -13,7 +13,7 @@ import rs.ac.uns.ftn.svtvezbe07.model.entity.User;
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 	   Optional<Comment> findCommentByText(String content);
-	   Comment findCommentById(Integer id);
+	   Comment findCommentById(Long id);
 	   List<Comment> findAllByUserId(User user);
 	   void deleteById(Long id);
 	   List<Comment> findAllByPost(Post user);

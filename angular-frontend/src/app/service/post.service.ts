@@ -217,6 +217,35 @@ edit(post) {
         }
       })*/;
   }
+   createInGroup(values:any) {
+    const loginHeaders = new HttpHeaders({
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    });
+    // const body = `username=${user.username}&password=${user.password}`;
+     let imageArray: { path: string }[] = [];
+     if (values.pathSlike) {
+  imageArray = values.pathSlike.split(',').map(path => ({ path: path }));}
+	const body = {
+  		'content': values.post,
+  		'images': imageArray,
+  		'group':values.group
+	};
+    console.log(body);
+    return this.apiService.post(this.config.postcreate2_url, JSON.stringify(body), loginHeaders)
+     /* .subscribe((res) => {
+        if(res.body == "NOT_ACCEPTABLE" || res.name == "HttpErrorResponse")
+        {
+          alert("try again")
+        }else {
+          alert("Uspesno ste postavili objavu");
+         
+          let returnUrl : String;
+          returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/allPosts';
+          this.router.navigate([returnUrl + ""]);
+        }
+      })*/;
+  }
    create4(values:any,group:any) {
     const loginHeaders = new HttpHeaders({
       'Accept': 'application/json',

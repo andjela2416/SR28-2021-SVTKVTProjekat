@@ -18,7 +18,22 @@ export class CommentListComponent {
   @Input() comments: any[]; // Ulazni podaci za komentare
   @Input() parentPost: any;
   @Input() currentUser: any;
+   activeDropdownId: { id: number, type: string } | null = null;
+  isReportMenuOpen: boolean = false;
+  isReportMenuOpen2: boolean = false;
   replyFormControls: { [commentId: number]: FormControl } = {};
+  reportReasons: string[] = [
+  "BREAKES_RULES",
+  "HARASSMENT",
+  "HATE",
+  "SHARING_PERSONAL_INFORMATION",
+  "IMPERSONATION",
+  "COPYRIGHT_VIOLATION",
+  "TRADEMARK_VIOLATION",
+  "SPAM",
+  "SELF_HARM_OR_SUICIDE",
+  "OTHER"
+];
 
   constructor(private authService: AuthService, private comService: ComService,
   private cdr: ChangeDetectorRef,private formBuilder: FormBuilder,
@@ -45,8 +60,8 @@ export class CommentListComponent {
     editingComment4= false;
     editCommentForm4: FormGroup; 
     selectedComForEditing2: any;
-    commentDropdownStatus: { [commentId: number]: { open: boolean } } = {};
-
+   	postDropdownStatus: { [postId: number]: { open: boolean, type: string } } = {};
+	commentDropdownStatus: { [commentId: number]: { open: boolean, type: string } } = {};
 	ngOnInit() {
 		
 	
@@ -101,7 +116,16 @@ export class CommentListComponent {
 	    });
 	  }
 	  
-	  	toggleCommentDropdown(commentId: number) {
+	  	  toggleReportMenu(): void {
+	  this.isReportMenuOpen = !this.isReportMenuOpen;
+	}
+	
+	toggleReportMenu2(): void {
+	  this.isReportMenuOpen2 = !this.isReportMenuOpen2;
+	}
+	
+	/*  
+	toggleCommentDropdown2(commentId: number) {
 	  for (const id in this.commentDropdownStatus) {
 	    if (id !== commentId.toString()) {
 	      this.commentDropdownStatus[id].open = false;
@@ -113,7 +137,7 @@ export class CommentListComponent {
 	    this.commentDropdownStatus[commentId].open = !this.commentDropdownStatus[commentId].open;
 	  }
 	}
-
+	*/
 	
 	closeCommentDropdown(commentId: number) {
 	  this.commentDropdownStatus[commentId].open = false;
@@ -184,7 +208,8 @@ export class CommentListComponent {
 			}else{
 	
 	  	const body = {
-	        text: commentContent
+	        text: commentContent,
+	        post:this.parentPost.id
 	      };
 	     this.comService.replyToCom(comment,body)
 	        .subscribe(res => {
@@ -213,7 +238,8 @@ export class CommentListComponent {
 			}else{
 	
 	  	const body = {
-	        text: commentContent
+	        text: commentContent,
+	        post:this.parentPost.id
 	      };
 	     this.comService.replyToCom(comment,body)
 	        .subscribe(res => {
@@ -244,6 +270,63 @@ export class CommentListComponent {
 	    return formattedDate;
 	}
 
+	selectReportReason(comment:any,reason: string): void {
+	 // this.selectedReportReason = reason;
+	  this.isReportMenuOpen = false; 
+	  this.toggleCommentDropdown({ id:comment.id, type: 'comment' });
+	  this.reportuj(comment,reason); 
+	}
+	
+	selectReportReason2(comment:any,reason: string): void {
+	  //this.selectedReportReason2 = reason;
+	  this.isReportMenuOpen2 = false; 
+	  this.toggleCommentDropdown({ id: comment.id, type: 'comment' });
+	  this.reportuj(comment,reason); 
+	}
+	
+	reportuj(comment,selectedReason: string) {
+  if (!selectedReason) {
+    alert("Morate selektovati razlog pre nego sto posaljete prijavu.");
+    return; 
+  }
+
+	const novaReakcija = {
+    id: comment.id,
+    reason: selectedReason,
+  };
+
+  this.userService.report3(novaReakcija).subscribe(res => {
+	alert("Uspesno ste prijavili komentar.");
+  });	
+
+}
+		toggleCommentDropdown(data: { id: number, type: string }) {
+  console.log(this.activeDropdownId);
+  const commentId = data.id; 
+  const commentType = data.type; 
+
+  if (this.activeDropdownId !== null && (this.activeDropdownId.id !== commentId || this.activeDropdownId.type !== commentType)) {
+    console.log("u");
+    if (this.activeDropdownId.type === "comment") {
+      this.commentDropdownStatus[this.activeDropdownId.id].open = false;
+      console.log("Zatvori prethodni padajući meni za komentar");
+    } else if (this.activeDropdownId.type === "post") {
+      this.postDropdownStatus[this.activeDropdownId.id].open = false;
+      console.log("Zatvori prethodni padajući meni za post");
+    }
+  }
+  
+  if (!this.commentDropdownStatus[commentId]) {
+    this.commentDropdownStatus[commentId] = { open: true, type: commentType  };
+    console.log("Otvori novi padajući meni za komentar");
+  } else {
+    this.commentDropdownStatus[commentId].open = !this.commentDropdownStatus[commentId].open;
+    console.log("Preklopi stanje padajućeg menija za komentar");
+  }
+  
+  this.activeDropdownId = { id: commentId, type: commentType };
+  this.cdr.detectChanges();
+}
 
   replyFormControlName(commentId: number): string {
     return `reply_${commentId}`;

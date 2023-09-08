@@ -320,7 +320,7 @@ public class PostController {
 		public ResponseEntity<Post> createPostInGroup(@Validated @RequestBody PostDTO postDTO) {
 		    rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
 		    if (currentUser != null) {
-		        Group group = groupService.findGroupById(postDTO.getGroup().getId());
+		        Group group = groupService.findGroup(postDTO.getGroup().getId());
 		        if (group != null) {
 		            Post post = new Post();
 		            post.setGroup(group);
@@ -346,11 +346,13 @@ public class PostController {
 		            post.setLikes(0);
 			        post.setDislikes(0);
 			        post.setHearts(0);
-
-		            // Dodajte logiku za dodavanje slika ako je potrebno
+			        post.setCommentsForPost(false);
+			        
 
 		          // Post createdPost = postService.createPost(post);
 		            postService.save(post);
+		            group.getPosts().add(post);
+		            groupService.save(group);
 		            Post p = postService.findPost(post.getId());
 		            return new ResponseEntity<>(p, HttpStatus.CREATED);
 		        } else {

@@ -1,0 +1,165 @@
+<div class="edit-profile">
+  <h2>Edit Profile</h2>
+  <form (submit)="saveChanges()" *ngIf="user"> 
+    <label for="displayName">Display Name</label>
+    <input type="text" id="displayName" [(ngModel)]="user.displayName" name="displayName">
+
+    <label for="description">Description</label>
+    <textarea id="description" [(ngModel)]="user.description" name="description"></textarea>
+
+    <button class="dugme" type="submit">Save Changes</button>
+  </form>
+</div>
+<div>
+<button class="dugme" (click)="changePassword()">Change password</button>
+<form (ngSubmit)="onSubmitPass()" *ngIf="!changePass" [formGroup]="formP">
+            <mat-form-field>
+                <label>Old password: </label>
+                <input formControlName="current" matInput required type="password">
+            </mat-form-field>
+            <mat-form-field>
+                <label>New passsword: </label>
+                <input formControlName="password" matInput required type="password">
+            </mat-form-field>
+            <mat-form-field>
+                <label>Repeat new password: </label>
+                <input formControlName="confirm" matInput required type="password">
+            </mat-form-field>
+            
+            <button [disabled]="!formP.valid" color="primary" mat-raised-button type="submit">Change</button>
+            <br>
+            
+        </form>
+</div>
+
+	<div class="container3" *ngIf="user">
+	<div class="scroll">
+ <table style="font-size:14px;width:300px;">
+    <thead>
+      <tr>
+        <th colspan="4">Friends</th>
+      </tr>
+      <tr>
+      <th>Display Name</th>
+      <th>Email</th>
+      <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of user.friends">
+        <td style="word-wrap: break-word;max-width: 100px">
+        <a [routerLink]="['/profile', user.id]">{{ user.displayName }}</a>
+        </td>
+		<td style="word-wrap: break-word;max-width: 100px">{{ user.email }}</td>
+        <td style="max-width: 100px">
+          <!-- Dodajte ovde akcije za korisnike -->
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+</div>
+<div class="container3" *ngIf="user && user.role=='ADMIN'">
+	<div class="scroll">
+ <table style="font-size:14px;width:300px;">
+    <thead>
+      <tr>
+        <th colspan="4">Reports</th>
+      </tr>
+      <tr>
+      <th>Reported</th>
+      <th>By who</th>
+      <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody *ngIf="reports">
+      <tr *ngFor="let report of reports">
+        <td style="word-wrap: break-word;max-width: 100px" *ngIf="report.reported">User: 
+        <a [routerLink]="['/profile', report.reported.id]">{{ report.reported.displayName }}</a>
+        </td>
+        <td style="word-wrap: break-word;max-width: 100px" *ngIf="report.reported2">
+        Post content: {{ report.reported2.content }}
+        </td>
+        <td style="word-wrap: break-word;max-width: 100px" *ngIf="report.reported3">
+        Comment text: {{ report.reported3.text }}
+        </td>
+		<td style="word-wrap: break-word;max-width: 100px">
+		<a [routerLink]="['/profile', report.byUser.id]">
+		{{ report.byUser.displayName }}</a></td>
+        <td style="max-width: 100px">
+          <button class="dugme" (click)="suspend(report,null)">Suspend</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+</div>
+<div class="container3" *ngIf="user && user.role=='GROUPADMIN'" >
+	<div class="scroll">
+ <table style="font-size:14px;width:300px;">
+    <thead>
+      <tr>
+        <th colspan="4">Reports</th>
+      </tr>
+      <tr>
+      <th>Reported</th>
+      <th>By who</th>
+      <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody *ngIf="reports2">
+      <tr *ngFor="let report of reports2">
+        <td style="word-wrap: break-word;max-width: 100px" *ngIf="report.reported2">
+        Post content: {{ report.reported2.content }}
+        </td>
+        <td style="word-wrap: break-word;max-width: 100px" *ngIf="report.reported3">
+        Comment text: {{ report.reported3.text }}
+        </td>
+		<td style="word-wrap: break-word;max-width: 100px">
+		<a [routerLink]="['/profile', report.byUser.id]">
+		{{ report.byUser.displayName }}</a></td>
+        <td style="max-width: 100px">
+          <button class="dugme" (click)="suspend(report,null)">Suspend</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div style="height:50px"></div>
+</div>
+<div class="container3" *ngIf="user && user.role=='ADMIN'" >
+	<div class="scroll">
+ <table style="font-size:14px;width:300px;">
+    <thead>
+      <tr>
+        <th colspan="4">Banns</th>
+      </tr>
+      <tr>
+      <th>Banned</th>
+      <th>Banned by group admin</th>
+      <th>Banned in group</th>
+      <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody *ngIf="banns">
+      <tr *ngFor="let banned of banns">
+        <td style="word-wrap: break-word;max-width: 100px" >
+        {{ banned.towards.firstName }} {{ banned.towards.lastName }}
+        </td>
+        <td style="word-wrap: break-word;max-width: 100px">
+        {{ banned.byGroupAdmin?.displayName }}
+        </td>
+		<td style="word-wrap: break-word;max-width: 100px">
+		{{ banned.group?.name }}</td>
+        <td style="max-width: 100px" *ngIf="banned.byAdmin">
+          <button class="dugme" (click)="unblock(banned.towards.id)">Unblock</button>
+        </td>
+        <td style="max-width: 100px" *ngIf="banned.byGroupAdmin">
+          <button class="dugme" (click)="suspend(null,banned.towards)">Suspend</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div style="height:50px"></div>
+</div>

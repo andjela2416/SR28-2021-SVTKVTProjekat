@@ -85,8 +85,6 @@ public class PostServiceImpl implements PostService {
 	    	Post g= postRepository.findPostById(idInt);
  	       	g.setDeleted(true);
  	       	postRepository.save(g);
- 	       	postRepository.deleteById(idInt);
-	 
 	    }
 
 		public Post createPost(rs.ac.uns.ftn.svtvezbe07.model.entity.Post newPost) {

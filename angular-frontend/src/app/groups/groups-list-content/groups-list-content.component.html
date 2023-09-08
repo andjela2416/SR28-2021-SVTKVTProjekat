@@ -1,7 +1,7 @@
-<div class="right-container">	
+<div class="flex-container">	
     <div class="row">
         <div class="col">
-            <app-groups-list [groups]="groupList"  ></app-groups-list>
+            <app-groups-list [groups]="groupList" [currentUser]="currentUser" ></app-groups-list>
         </div>
     </div>
      <button id="dugme" (click)="goBack()">Go Back</button>

@@ -29,9 +29,12 @@ public class Report {
 	    private User reported;
 	    
 	    @OneToOne 
+	    @JoinColumn(name="reported2")
 	    private Post reported2;
+
 	    
 	    @OneToOne 
+	    @JoinColumn(name="reported3")
 	    private Comment reported3;
 	    
 	    
@@ -58,7 +61,6 @@ public class Report {
 			this.reportReason = reportReason;
 		}
 
-		
 
 		public LocalDateTime getTimestamp() {
 			return timestamp;

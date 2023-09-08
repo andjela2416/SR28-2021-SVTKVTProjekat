@@ -64,20 +64,20 @@ export class LoginComponent implements OnInit {
   }
 
   onSubmit() {
-    /**
-     * Innocent until proven guilty
-     */
     this.notification = undefined;
     this.submitted = true;
 
     this.authService.login(this.form.value)
       .subscribe(data => {
           this.userService.getMyInfo().subscribe();
-      //    this.router.navigate([this.returnUrl]);
         },
         error => {
           this.submitted = false;
-          this.notification = {msgType: 'error', msgBody: 'Incorrect username or password.'};
+          if (error.status === 403) {     
+        this.notification = { msgType: 'error', msgBody: 'You are banned.' };
+      } else {
+        this.notification = { msgType: 'error', msgBody: 'Incorrect username or password.' };
+      }
         });
   }
 

@@ -1,0 +1,76 @@
+.edit-profile {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+label {
+  font-weight: bold;
+}
+
+input[type="text"],
+input[type="email"],
+textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+button {
+  background-color: #007bff;
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+.dugme {
+  background-color: #673ab7;
+  margin: 10px;
+  color: white;
+  font-size: 15px;
+  text-align: center; 
+  padding: 5px 10px; 
+  border-radius: 3px;
+  cursor: pointer;  
+}
+.container3 {
+  padding-left: 10px;
+  padding-right: 10px;
+  max-width: 400px;
+  margin: 30px auto;
+}
+
+.scroll{
+  overflow-y: auto;
+  max-height:200px;
+}
+table {
+    max-width: 950px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: 8px;
+  }
+  th{
+      font-weight: 100;
+      }

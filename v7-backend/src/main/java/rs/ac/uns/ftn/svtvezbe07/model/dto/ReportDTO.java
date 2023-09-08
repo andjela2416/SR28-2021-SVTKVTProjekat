@@ -32,10 +32,13 @@ public class ReportDTO {
 
     private Post reported2;
     
+    
+    private Long reported2Id;
+    
 
     private Comment reported3;
     
-    
+    private Long reported3Id;
 
     private User byUser;
 
@@ -53,6 +56,16 @@ public class ReportDTO {
 	}
 
 
+	public Long getReported2Id() {
+		return reported2Id;
+	}
+
+
+	public void setReported2Id(Long reported2Id) {
+		this.reported2Id = reported2Id;
+	}
+
+
 	public ReportReason getReportReason() {
 		return reportReason;
 	}
@@ -65,6 +78,16 @@ public class ReportDTO {
 
 	public LocalDate getTimestamp() {
 		return timestamp;
+	}
+
+
+	public Long getReported3Id() {
+		return reported3Id;
+	}
+
+
+	public void setReported3Id(Long reported3Id) {
+		this.reported3Id = reported3Id;
 	}
 
 

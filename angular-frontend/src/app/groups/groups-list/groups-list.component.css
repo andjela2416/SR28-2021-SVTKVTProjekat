@@ -1,3 +1,32 @@
+table {
+    max-width: 950px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: 8px;
+  }
+  th{
+      font-weight: 100;
+      }
+
+  input, label{
+    margin: 10px;
+  }
+  input{
+    width: 100px;
+  }
+  textarea{
+    width: 300px;
+    height: 100px;
+  }
+
 .container {
   max-width: 440px;
   margin-left: auto;
@@ -5,7 +34,9 @@
   padding-left: 10px;
   padding-right: 10px;
   margin-top:18px;
-  
+  display: flex;
+  justify-content: space-between;
+
 }
 .container2 {
   
@@ -14,13 +45,33 @@
   padding-left: 10px;
   padding-right: 10px;
 }
+
+.container3 {
+  margin:20px auto;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.scroll{
+  overflow-y: auto;
+  max-height:200px;
+}
+
 .centered-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
+
   
+}
+.centered-container2 {
+  flex: 1; /* Popunjava raspoloživi prostor i centira sadržaj unutar sebe */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: lightgray; /* Primer boje pozadine za desni div */
 }
 .t {
   width: 300px;
@@ -36,7 +87,21 @@
   padding: 5px 10px; 
   border-radius: 3px;
   float:right;
+  cursor: pointer;  
 }
+
+.dugmePostavi2 {
+  background-color: #673ab7;
+  margin: 10px;
+  color: white;
+  font-size: 12px;
+  text-align: center; 
+  padding: 5px 10px; 
+  border-radius: 3px;
+  cursor: pointer;  
+}
+
+
 .dugme {
   background-color: #673ab7;
   margin: 10px;
@@ -45,4 +110,39 @@
   text-align: center; 
   padding: 5px 10px; 
   border-radius: 3px;
+  cursor: pointer;  
+}
+.right {
+  width: 200px; /* Prilagodite širinu po potrebi */
+  background-color: lightgray; /* Primer boje pozadine */
+  margin: auto; /* Centrira element horizontalno */
+}
+
+.col {
+  flex: 0 0 auto; /* Neće se širiti, zadržava svoju širinu */
+}
+
+.tooltip {
+  position: relative;
+  cursor:pointer
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 90px;
+  background-color: #adafb3;
+  color: #fff;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 5px;
+  left: 60%;
+  margin-left: -30px;
+  position: absolute;
+  z-index: 1;
+  font-size:12px;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
 }

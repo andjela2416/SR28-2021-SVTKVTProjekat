@@ -1,0 +1,12 @@
+	
+<div class="col">
+	<div *ngIf="group">
+    <h1>{{ group.name }}</h1>
+    <p>Administrator: {{ group.groupAdmin.firstName }} {{ group.groupAdmin.lastName }}</p>
+    <p>Description: {{group.description}}</p>
+    <p>Creation date: {{ formatTimestamp(group.creationDate) }}</p>
+    <button *ngIf="!isMember && !isAdmin" class="dugme" (click)="posaljiZahtevZaGrupu()"> {{ isRequestSent ? 'Request sent' : 'Join group' }}</button>
+</div>
+</div>	
+
+

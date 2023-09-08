@@ -1,0 +1,27 @@
+<div class="container3" >
+      <div class="row">
+          <div class="col" style="">
+			<table>
+			  <thead>
+			    <tr>
+			      <th>User</th>
+			      <th>Date</th>
+			      <th>Actions</th>
+			    </tr>
+			  </thead>
+			  <tbody>
+			    <tr *ngFor="let request of friendRequests">
+			      <td>
+			      <a [routerLink]="['/profile', request.fromWho.id]">{{ request.fromWho.displayName }}</a>
+			      </td>
+			      <td>{{ formatTimestamp(request.createdAt) }}</td>
+			      <td>
+			        <button (click)="approveRequest(request.id)">Accept</button>
+			        <button (click)="rejectRequest(request.id)">Decline</button>
+			      </td>
+			    </tr>
+			  </tbody>
+			</table>
+  </div>
+  </div>
+  </div>

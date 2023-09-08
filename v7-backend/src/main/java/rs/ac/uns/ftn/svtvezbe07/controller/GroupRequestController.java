@@ -51,7 +51,7 @@ public class GroupRequestController {
     @PostMapping("/create/{id}")
     public ResponseEntity<GroupRequest> createGroupRequest(@PathVariable Long id) {
         try {
-            Group group = groupService.findGroupById(id);
+            Group group = groupService.findGroup(id);
             if (group != null) {
                 
                 Authentication auth = SecurityContextHolder.getContext().getAuthentication();

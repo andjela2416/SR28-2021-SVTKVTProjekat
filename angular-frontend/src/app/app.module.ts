@@ -33,14 +33,20 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { TokenInterceptor } from './interceptor/TokenInterceptor';
 import { AddPostComponent } from './posts/add-post/add-post.component';
 import { PostListComponent } from './posts/post-list/post-list.component';
+import { OneGroupComponent } from './groups/one-group/one-group.component';
 import { YourCommentsComponent } from './comments/your-comments/your-comments.component';
 import { AllPostListComponent } from './allPosts/allPost-list/allPost-list.component';
 import { GroupsListComponent } from './groups/groups-list/groups-list.component';
+import { GroupRequestsComponent } from './groups/group-requests/group-requests.component';
 import { CommentListComponent } from './allPosts/comment-list/comment-list.component';
 import { PostListContentComponent } from './posts/post-list-content/post-list-content.component';
 import { YourCommentsContentComponent } from './comments/your-comments-content/your-comments-content.component';
 import { AllPostListContentComponent } from './allPosts/allPost-list-content/allPost-list-content.component';
 import { GroupsListContentComponent } from './groups/groups-list-content/groups-list-content.component';
+import { OneGroupContentComponent } from './groups/one-group-content/one-group-content.component';
+import { UserProfileComponent } from './user-profile/user-profile.component';
+import { EditProfileComponent } from './edit-profile/edit-profile.component';
+import { FriendRequestsComponent } from './edit-profile/friend-requests/friend-requests.component';
 
 @NgModule({
   declarations: [
@@ -58,9 +64,15 @@ import { GroupsListContentComponent } from './groups/groups-list-content/groups-
     AllPostListComponent,
     GroupsListContentComponent,
     GroupsListComponent,
+    OneGroupContentComponent,
     PostListContentComponent,
     CommentListComponent,
     AllPostListContentComponent,
+    OneGroupComponent,
+    GroupRequestsComponent,
+    FriendRequestsComponent,
+    UserProfileComponent,
+    EditProfileComponent
   ],
   imports: [
     MatIconModule,

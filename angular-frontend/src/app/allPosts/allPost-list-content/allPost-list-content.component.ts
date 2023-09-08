@@ -33,6 +33,11 @@ export class AllPostListContentComponent implements OnInit {
   getPosts(){
     this.postService.getAllRndm().subscribe((posts) => {
     this.postList= posts    
+     // Ovde možete obraditi svaki post
+    for (let post of this.postList) {
+      // Postavite kod za obradu posta ovde
+      console.log(post); // Primer: Ispisivanje svakog posta u konzoli
+    }
     })
   }
   navigateTo(){

@@ -104,7 +104,7 @@ public class Post {
 		this.comments = comments;
 	}
 
-	@JsonIgnoreProperties({"friends", "lastName", "firstName","description","password","displayName","lastLogin","role","email"})
+	@JsonIgnoreProperties({"friends", "lastName", "firstName","description","password","lastLogin","role","email"})
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name="user_id")
 	private User postedBy;

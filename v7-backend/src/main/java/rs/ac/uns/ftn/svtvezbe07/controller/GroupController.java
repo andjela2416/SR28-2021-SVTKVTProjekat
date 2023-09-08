@@ -43,9 +43,15 @@ import rs.ac.uns.ftn.svtvezbe07.model.entity.Image;
 import rs.ac.uns.ftn.svtvezbe07.model.entity.Post;
 import rs.ac.uns.ftn.svtvezbe07.model.entity.Report;
 import rs.ac.uns.ftn.svtvezbe07.model.entity.ReportReason;
+import rs.ac.uns.ftn.svtvezbe07.model.entity.Roles;
+import rs.ac.uns.ftn.svtvezbe07.model.entity.Banned;
+import rs.ac.uns.ftn.svtvezbe07.model.entity.Comment;
 import rs.ac.uns.ftn.svtvezbe07.model.entity.Group;
 import rs.ac.uns.ftn.svtvezbe07.model.entity.GroupRequest;
+import rs.ac.uns.ftn.svtvezbe07.repository.BannedRepository;
 import rs.ac.uns.ftn.svtvezbe07.repository.ImageRepository;
+import rs.ac.uns.ftn.svtvezbe07.service.BannedService;
+import rs.ac.uns.ftn.svtvezbe07.service.CommentService;
 import rs.ac.uns.ftn.svtvezbe07.service.GroupRequestService;
 import rs.ac.uns.ftn.svtvezbe07.service.GroupService;
 import rs.ac.uns.ftn.svtvezbe07.service.PostService;
@@ -72,18 +78,21 @@ public class GroupController {
  	@Autowired
     PostService postService;
  	@Autowired
+    BannedService bannedService;
+ 	@Autowired
+    CommentService commService;
+ 	@Autowired
  	private ImageRepository imageRepository;
+ 	@Autowired
+ 	private BannedRepository bannedRepository;
  	
  	 @GetMapping("/random")
      public ResponseEntity<List<Post>> getRandomPosts() {
-         
+         logger.info("helooo");
          List<Post> allPosts = postService.getAll();
-
-         
-         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-         String username = authentication.getName();
-         rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userService.findByUsername(username);
-
+        
+         rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
+  		
          //grupe koje je on napravio
          Set<Group> userGroups = currentUser.getGroups();
          
@@ -122,12 +131,76 @@ public class GroupController {
  	    return groupMembers.contains(user);
  	}
 
- 	 @GetMapping("/reports")
-     public ResponseEntity<List<Report>> getAllReports() {
- 		List<Report> l=reportService.getAll();
- 		logger.info(l);
-        return new ResponseEntity<>(l, HttpStatus.OK);
+	@GetMapping("/reports")
+	public ResponseEntity<List<Report>> getAllReports() {
+	    List<Report> allReports = reportService.getAll();
+	    
+	    List<Report> filteredReports = allReports.stream()
+	            .filter(report -> !report.getAccepted()) 
+	            .collect(Collectors.toList());
+	    
+	    logger.info(filteredReports);
+	    
+	    return new ResponseEntity<>(filteredReports, HttpStatus.OK);
+	}
+	
+	@GetMapping("/banns")
+	@PreAuthorize("hasAnyRole( 'ADMIN')")
+	public ResponseEntity<List<Banned>> getAllBanns() {
+	    List<Banned> allBanns = bannedService.getAll();
+	    
+	    logger.info(allBanns);
+	    
+	    return new ResponseEntity<>(allBanns, HttpStatus.OK);
+	}
+
+ 	 
+ 	 
+ 	 @GetMapping("/reportsGrAdmin")
+     public ResponseEntity<List<Report>> getAllReports2() throws Exception {
+ 		rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
+ 	    Set<Group> userGroups = currentUser.getGroups();
+
+ 	    List<Report> allReports = reportService.getAll();
+ 	    List<Report> filteredReports = new ArrayList<>();
+
+ 	    for (Report report : allReports) {
+ 	        if (belongsToUserGroup(report, userGroups)) {
+ 	            filteredReports.add(report);
+ 	        }
+ 	    }
+ 	    logger.info("greska2"+filteredReports);
+ 	    List<Report> filteredReports2 = filteredReports.stream()
+	            .filter(report -> !report.getAccepted()) 
+	            .collect(Collectors.toList());
+ 	    
+ 	    return new ResponseEntity<>(filteredReports2, HttpStatus.OK);
      }
+ 	 
+ 	private boolean belongsToUserGroup(Report report, Set<Group> userGroups) throws Exception {
+ 	    if (report.getReported2() != null) {
+ 	    	logger.info("greska3");
+ 	        Post post = report.getReported2();
+ 	       logger.info(post.getGroup());
+ 	       logger.info(userGroups);
+ 	        if (post.getGroup() != null && userGroups.contains(post.getGroup())) {
+ 	        	logger.info("greska4");
+ 	            return true;
+ 	        }
+ 	    }
+ 	    
+ 	    if (report.getReported3() != null) {
+ 	    	logger.info("greska5");
+ 	        Comment comment = report.getReported3();
+ 	        Post parentPost = comment.getPost();
+ 	        if (parentPost != null && parentPost.getGroup() != null && userGroups.contains(parentPost.getGroup())) {
+ 	        	return true;
+ 	        }
+ 	    }
+ 	    
+ 	    return false;
+ 	}
+ 	
  	  @PutMapping("/reports/{id}")
  		@CrossOrigin(origins = "http://4200")
  		@PreAuthorize("hasAnyRole('USER', 'ADMIN','GROUPADMIN')")
@@ -206,8 +279,30 @@ public class GroupController {
  		 }
  		 logger.info(report.getReportReason());
  		 report.setByUser(currentUser);
-         Report createdReport = reportService.createReport(report);
-         return ResponseEntity.status(HttpStatus.CREATED).body(createdReport);
+ 		 if (report.getReported2Id()!=null) {
+ 			Post p = postService.findPost(report.getReported2Id());
+ 	 		report.setReported2(p);
+ 		 }
+ 		 else if (report.getReported3Id()!=null) {
+ 			Comment c = commService.findComment(report.getReported3Id());
+ 	 		report.setReported3(c);}
+ 		 report.setAccepted(false);
+ 		Report createdReport=new Report();
+ 		 if(report.getReported()!=null) {
+	 		 List<Banned> banned=bannedService.getAll();
+	 		 boolean isBanned=false;
+	 		 for (Banned b:banned) {
+	 			 if(b.getTowards().getId().equals(report.getReported().getId())) {
+	 				 isBanned=true; 
+	 				 createdReport=null;
+	 				 }
+	 		  }
+	 		 if(!isBanned) {
+	 			createdReport = reportService.createReport(report);
+	 		 }
+ 		 }else {createdReport = reportService.createReport(report);
+ 		 }
+ 		return ResponseEntity.status(HttpStatus.OK).body(createdReport);
      }
 
  	@JsonIgnoreProperties({"isDeleted","suspended","suspendedReason"})
@@ -233,30 +328,38 @@ public class GroupController {
  	    for (Group grupa : sveGrupe) {
  	        if (grupa.getGroupAdmin().getId() == currentUser.getId()) {
  	            // Preskoči grupu ako je trenutni korisnik admin
+ 	        	logger.info("a");
  	            continue;
+ 	           
  	        }
 
  	        if (grupa.isSuspended()) {
  	            // Preskoči grupu ako je suspendovana
+ 	        	logger.info("b");
  	            continue;
+ 	            
  	        }
 
  	        if (!grupa.getMembers().contains(currentUser)) {
  	            grupeNisuUclanjeni.add(grupa);
+ 	           logger.info("c");
  	        }
  	    }
+ 	    
 
  	    return new ResponseEntity<>(grupeNisuUclanjeni, HttpStatus.OK);
  	}
 
     @GetMapping("/uclanjeni")
+    @Transactional
  	public ResponseEntity<List<Group>> getGrupeUclanjeni( ) {
  		rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
      	
  	    List<Group> grupeUclanjeni = new ArrayList<>();
  	    List<Group> sveGrupe=groupService.getAll();
  	    for (Group grupa : sveGrupe) {
- 	       if (grupa.getGroupAdmin().getId() == currentUser.getId()) {
+ 	    	 logger.info(grupa.isDeleted()+"controller");
+ 	       if (grupa.getGroupAdmin().getId() == currentUser.getId() && grupa.isDeleted()==false) {
  	    	  grupeUclanjeni.add(grupa);
 	        }
 
@@ -265,11 +368,10 @@ public class GroupController {
 	            continue;
 	        }
 
-	        if (grupa.getMembers().contains(currentUser)) {
+	        if (grupa.getMembers().contains(currentUser) && grupa.isDeleted()==false) {
 	        	grupeUclanjeni.add(grupa);
 	        }
  	    }
-
  	    return new ResponseEntity<>(grupeUclanjeni, HttpStatus.OK);
  	}
 
@@ -348,7 +450,10 @@ public class GroupController {
              if (groupMembers != null) {
                  for (rs.ac.uns.ftn.svtvezbe07.model.entity.User member : groupMembers) {
                      if (member.getUsername().equals(username)) {
-                         List<Post> groupPosts = (List<Post>) group.getPosts();
+                         Set<Post> postSet = group.getPosts(); 
+
+                         List<Post> groupPosts = new ArrayList<>(postSet); 
+
                          if (groupPosts != null) {
                              return new ResponseEntity<>(groupPosts, HttpStatus.OK);
                          }
@@ -419,6 +524,7 @@ public class GroupController {
     
     
     @GetMapping("/all/user")
+    //grupe kojima je ulogovani korisnik admin
     //@PreAuthorize("hasRole('USER')")
     //@CrossOrigin(origins = "http://localhost:4200")
     public ResponseEntity<List<Group>> getAllUsers(){
@@ -436,6 +542,7 @@ public class GroupController {
     	        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     	    }
     }
+    
 
    /* @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
@@ -443,12 +550,27 @@ public class GroupController {
         return this.GroupService.findAll();
     }
 */
+    @Transactional
+    @DeleteMapping("/deleteGroupRequest/{id}")
+   // @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<GroupRequest> deleteGroupRequest(@PathVariable Long id) {
+        try {
+        	GroupRequest gr=groupRequestService.findGroupRequest(id);
+        	gr.setApproved(false);
+        	gr.setAt(LocalDateTime.now());
+        	gr.setDeleted(true);
+            groupRequestService.save(gr);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
 
     @PreAuthorize("hasAnyRole('USER', 'ADMIN','GROUPADMIN')")
     @PostMapping("/createRequest/{id}")
     public ResponseEntity<GroupRequest> createGroupRequest(@PathVariable  Long id) {
         try {
-            Group group = groupService.findGroupById(id);
+            Group group = groupService.findGroup(id);
             if (group != null) {
                 
                 Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -461,6 +583,7 @@ public class GroupController {
 
                 GroupRequest groupRequest = new GroupRequest();
                 groupRequest.setApproved(false);
+                groupRequest.setDeleted(false);
                 groupRequest.setCreatedAt(LocalDateTime.now());
                 groupRequest.setUser_id(user);
                 groupRequest.setGroup(group);
@@ -475,15 +598,31 @@ public class GroupController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
+    @GetMapping("/groupRequests/all")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN','GROUPADMIN')")
+    public ResponseEntity<List<GroupRequest>> getAllGroupRequests() {
+        List<GroupRequest> groupRequests = groupRequestService.getAll();
+
+        List<GroupRequest> pendingGroupRequests = new ArrayList<>();
+        for (GroupRequest request : groupRequests) {
+            if (request.isApproved() || request.isDeleted()) {
+               continue;
+            }else { pendingGroupRequests.add(request);}
+            logger.info(request.isApproved()+""+request.isDeleted()+"ss");
+        }
+
+        return new ResponseEntity<>(pendingGroupRequests, HttpStatus.OK);
+    }
+    
     @PostMapping("/groupRequests/all/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','USER','GROUPADMIN')")
     public ResponseEntity<List<GroupRequest>> getAllGroupRequests(@PathVariable  Long id) {
-    	Group grupa=groupService.findGroupById(id);
+    	Group grupa=groupService.findGroup(id);
         List<GroupRequest> groupRequests = groupRequestService.findAllByGroup(id);
         
         List<GroupRequest> pendingGroupRequests = new ArrayList<>();
         for (GroupRequest request : groupRequests) {
-            if (request.isApproved()) {
+            if (request.isApproved() || request.isDeleted())  {
                continue;
             }else { pendingGroupRequests.add(request);}
         }
@@ -562,7 +701,7 @@ public class GroupController {
             return new ResponseEntity<>(null, HttpStatus.NOT_ACCEPTABLE);
         }
 
-        Group p=groupService.findGroupByName(Group.getName());
+        Group p=groupService.findByGroup(createdGroup);
         return new ResponseEntity<>(p, HttpStatus.CREATED);
     }
 
@@ -580,9 +719,8 @@ public class GroupController {
 	        postService.delete(post.getId());
 	    }
 	    groupService.delete(id);
-	    Group deletedGroup = new Group();
-	    deletedGroup.setDeleted(true);
-	    return new ResponseEntity<>(deletedGroup, HttpStatus.OK);
+	    List<Group> groups=groupService.getAll();
+	    return new ResponseEntity<>(new Group(), HttpStatus.OK);
 	}
 
 	
@@ -592,7 +730,6 @@ public class GroupController {
 	//@CrossOrigin()
 	public ResponseEntity<Group> delete2(@RequestBody GroupDTO g) throws Exception {
 		Long l=Long.valueOf(g.getId());
-		logger.info("LOLA"+l.toString()+g.getSuspendedReason());
 		Group edit = groupService.findGroup(l);
         if(edit==null) {
         	throw new Exception("d");
@@ -605,6 +742,88 @@ public class GroupController {
         return new ResponseEntity<>(p, HttpStatus.OK);
 
 	}
+	
+	@PostMapping("/report/suspend")
+	@Transactional
+	@PreAuthorize("hasAnyRole( 'ADMIN','GROUPADMIN')")
+	//@CrossOrigin()
+	public ResponseEntity<Report> suspend(@RequestBody ReportDTO r,@RequestParam (required=false) Long idGrupe) throws Exception {
+		//Long l=Long.valueOf(r.getId());
+		Report report = reportService.findReport(r.getId());
+		rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
+  		
+		if(report.getReported()!=null) {
+			if(currentUser.getRole().equals(Roles.GROUPADMIN)) {
+				//Blokiranje korisnika grupe-->
+				rs.ac.uns.ftn.svtvezbe07.model.entity.User u = report.getReported();
+				Banned banUser=new Banned();
+				banUser.setByGroupAdmin(currentUser);
+				banUser.setTowards(u);
+				Group g = groupService.findGroup(idGrupe);
+				banUser.setGroup(g);
+				bannedService.save(banUser);
+			}else if(currentUser.getRole().equals(Roles.ADMIN)) {
+				//Blokiranje korisnika na nivou cele aplikacije
+				boolean korisnikJeVecBanovan = false;
+				rs.ac.uns.ftn.svtvezbe07.model.entity.User u = report.getReported();
+				List <Banned> listaBanovanih=bannedService.getAll();
+
+				for (Banned b : listaBanovanih) {
+				    if (b.getTowards().equals(r.getReported())) {
+				    	korisnikJeVecBanovan = true;			        
+				    } 
+				}
+				if (!korisnikJeVecBanovan) {
+			    	Banned banUser = new Banned();
+			        banUser.setByAdmin(currentUser);
+			        banUser.setTowards(u);
+			        bannedService.save(banUser);
+			        List<Report> reportiZaKorisnika=reportService.getAll();
+			        for(Report re:reportiZaKorisnika) {
+			        	if(re.getReported()!=null && re.getReported().equals(u)) {
+			        		re.setAccepted(true);
+			        		reportService.save(re);
+			        	}
+			        }
+				}
+			}		
+		}
+		
+		
+		if(report.getReported2()!=null) {
+			Post p=report.getReported2();
+			postService.delete(p.getId());
+			postService.save(p);
+		}else if(report.getReported3()!=null) {
+			Comment c=report.getReported3();
+			commService.delete(c.getId());
+			commService.save(c);
+			postService.save(c.getPost());
+		}
+		
+		report.setAccepted(true);
+		Report rep=reportService.save(report);
+		
+
+        return new ResponseEntity<>(rep, HttpStatus.OK);
+
+	}
+	
+	@PutMapping("/unban/{userId}")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<Void> unbanUser(@PathVariable Integer userId) {
+	    java.util.Optional<rs.ac.uns.ftn.svtvezbe07.model.entity.User> user = userService.findById(userId);
+	    
+	    if (user != null) {
+	    	Banned banned = bannedRepository.findBannedByTowards(user.get());
+	        bannedRepository.delete(banned);
+	        return ResponseEntity.ok().build();
+	    } else {
+	        return ResponseEntity.notFound().build();
+	    }
+	}
+
+	
 
 	@PutMapping("/edit")
 	@CrossOrigin(origins = "http://4200")

@@ -14,53 +14,53 @@ export class ConfigService {
     return this._usersa_url;
   }
   
-    private _jedan = "/api/users/all";
+    private _jedan = this._api_url+"/users/all";
 	
   get jedan(): string {
     return this._jedan;
   }
-        private _tri = "/api/groups/nisuuclanjeni";
+        private _tri = this._api_url+"/groups/nisuuclanjeni";
 	
   get tri(): string {
     return this._tri;
   }
-          private _nula = "/api/groups";
+          private _nula = this._api_url+"/groups";
 	
   get nula(): string {
     return this._nula;
   }
-            private _nula2 = "/api/groups/gru";
+            private _nula2 = this._api_url+"/groups/gru";
 	
   get nula2(): string {
     return this._nula2;
   }
   
-     private _sest = "/api/groups/uclanjeni/{id}";
+     private _sest = this._api_url+"/groups/uclanjeni/{id}";
 
   get sest(): string {
     return this._sest;
   }
   
-      private _sedam = "/api/groups/allPosts";
+      private _sedam = this._api_url+"/groups/allPosts";
 	
   get sedam(): string {
     return this._sedam;
   }
   
-      private _osam = "/api/posts/all";
+      private _osam =this._api_url+"/posts/all";
 	
   get osam(): string {
     return this._osam;
 
   }
-    private _devet = "/api/groups/random";
+    private _devet = this._api_url+"/groups/random";
 
 	
   get devet(): string {
     return this._devet;
   }  
   
-      private _deset = "/api/posts";
+      private _deset = this._api_url+"/posts";
 	
   get deset(): string {
     return this._deset;
@@ -81,30 +81,30 @@ export class ConfigService {
     return this._dvanaest;
   }
 
-        private _trinaest = "/api/posts/all/user";
+        private _trinaest = this._api_url+"/posts/all/user";
 	
   get trinaest(): string {
     return this._trinaest;
   }
-        private _sesnaest = "/api/groups/all/user";
+        private _sesnaest = this._api_url+"/groups/all/user";
 	
   get sesnaest(): string {
     return this._sesnaest;
   }
   
-        private _sedamnaest = "/api/groups/allPosts/your";
+        private _sedamnaest = this._api_url+"/groups/allPosts/your";
 	
   get sedamnaest(): string {
     return this._sedamnaest;
   }
-          private _cetiri = "/api/groups/nisuuclanjeni/{id}";
+          private _cetiri = this._api_url+"/groups/nisuuclanjeni/{id}";
 	
   get cetiri(): string {
     return this._cetiri;
   }
 
   
-        private _osamnaest = "/api/comments/all/user";
+        private _osamnaest = this._api_url+"/comments/all/user";
 	
   get osamnaest(): string {
     return this._osamnaest;
@@ -115,24 +115,24 @@ export class ConfigService {
   get devetnaest(): string {
     return this._devetnaest;
   }
-        private _dvadeset = "/api/groups/reports";
+        private _dvadeset = this._api_url+"/groups/reports";
 	
   get dvadeset(): string {
     return this._dvadeset;
   }    
-    private _cetrnaest = "/api/posts/{id}";
+    private _cetrnaest = this._api_url+"/posts/{id}";
 	
   get cetrnaest(): string {
     return this._cetrnaest;
   }
 
-      private _petnaest = "/api/posts/{id}";
+      private _petnaest = this._api_url+"/posts/{id}";
 	
   get petnaest(): string {
     return this._petnaest;
   }
   
-      private _dva = "/api/groups/all";
+      private _dva = this._api_url+"/groups/all";
 	
   get dva(): string {
     return this._dva;
@@ -274,12 +274,23 @@ export class ConfigService {
   get getOneCom2_url(): string {
     return this._getOneCom2_url;
   }
+          private _banns_url = this._api_url + "/groups/banns";
+	
+  get banns_url(): string {
+    return this._banns_url;
+  }
+  
         private _reports_url = this._api_url + "/groups/reports";
 	
   get reports_url(): string {
     return this._reports_url;
   }
   
+          private _reports2_url = this._api_url + "/groups/reportsGrAdmin";
+	
+  get reports2_url(): string {
+    return this._reports2_url;
+  }
   
         private _getOneGroup2_url = this._api_url + "/groups";
 	
@@ -376,6 +387,11 @@ export class ConfigService {
 
   get signup_url(): string {
     return this._signup_url;
+  }
+  private _editUser_url = this._user_url + '/edit';
+
+  get editUser_url(): string {
+    return this._editUser_url;
   }
 
 }

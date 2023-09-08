@@ -12,11 +12,16 @@ import rs.ac.uns.ftn.svtvezbe07.model.dto.UserDTO;
 import rs.ac.uns.ftn.svtvezbe07.model.entity.Post;
 import rs.ac.uns.ftn.svtvezbe07.model.entity.User;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
-
+    List<User> findByUsernameContaining(String keyword);
+    List<User> findByFirstNameEquals(String keyword);
+    List<User> findByLastNameEquals(String keyword);
+    List<User> findByFirstNameEqualsAndLastNameEquals(String firstName,String lastName);
+    Optional<User> findById(Integer id);
     Optional<User> findFirstByUsername(String username);
 //    @Query("SELECT u FROM User u JOIN FETCH u.groups WHERE u.id = :userId")
 //    User findByIdWithGroups(@Param("userId") Integer userId);

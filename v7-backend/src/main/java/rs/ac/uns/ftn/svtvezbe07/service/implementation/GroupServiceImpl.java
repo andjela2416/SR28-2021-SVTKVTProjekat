@@ -78,8 +78,8 @@ public class GroupServiceImpl implements GroupService {
         return null;
     }
     
-    public Group findGroupById(Long id) {
-        Group Group = groupRepository.findGroupById(id);
+    public Group findByGroup(Group g) {
+        Group Group = groupRepository.findGroupByGroup(g);
         if(Group!=null){
             return Group;
         }
@@ -96,11 +96,16 @@ public class GroupServiceImpl implements GroupService {
     	       Group g= groupRepository.findGroupById(idInt);
     	       g.setDeleted(true);
     	       groupRepository.save(g);
-    	       groupRepository.deleteById(idInt);
-    	       logger.info("Grupa uspešno obrisana."+idInt);
+    	       //groupRepository.deleteById(idInt);
+    	       logger.info("Grupa uspešno obrisana."+g.isDeleted());
     	   } else {
     	       logger.info("Grupa sa ID-em " + idInt + " ne postoji.");
     	   }
+    	   
+    	 List<Group> groups= groupRepository.findAll();
+    	 for (Group g : groups) {
+    		 logger.info("Grupaa"+g.isDeleted());
+    	 }
     }
     
     public Group suspend(Group g) {

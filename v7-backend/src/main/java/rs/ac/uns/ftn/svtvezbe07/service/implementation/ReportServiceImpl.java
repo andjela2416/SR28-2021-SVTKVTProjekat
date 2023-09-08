@@ -88,6 +88,7 @@ public class ReportServiceImpl implements ReportService{
 	        Report.setReported3(newReport.getReported3());
 	        Report.setReportReason(newReport.getReportReason());
 	        Report.setTimestamp(LocalDateTime.now());
+	        Report.setAccepted(newReport.getAccepted());
 	        Report = ReportRepository.save(Report);
 	        return Report;
 	}

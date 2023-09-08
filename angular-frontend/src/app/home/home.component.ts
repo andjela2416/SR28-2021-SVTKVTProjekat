@@ -8,7 +8,7 @@ import { FormBuilder, FormGroup,FormControl } from '@angular/forms';
 import { AuthService } from '../service/auth.service';
 import { ApiService } from '../service/api.service';
 import { ComService } from '../service/com.service';
-import { Validators } from '@angular/forms'
+import { Validators } from '@angular/forms';
 import { CardComponent} from '../card/card.component';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntil } from 'rxjs/operators';

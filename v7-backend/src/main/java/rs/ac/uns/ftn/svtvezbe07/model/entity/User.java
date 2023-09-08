@@ -72,7 +72,7 @@ public class User {
 	//@OneToMany(fetch = FetchType.EAGER)
 	//private Set<User> friendList = new HashSet<User>();
 	@JsonIgnoreProperties({"hibernateLazyInitializer","handler","friends"})
-	@OneToMany(fetch = FetchType.EAGER)
+	@ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "user_friends",
         joinColumns = @JoinColumn(name = "user_id"),

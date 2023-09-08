@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
@@ -72,7 +73,11 @@ public class CommentController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Comment>> getAll(){
     	
-        return new ResponseEntity<>(commentService.getAll(), HttpStatus.OK);
+        List<Comment> nonDeletedReplies = commentService.getAll().stream()
+                .filter(reply -> !reply.isDeleted())
+                .collect(Collectors.toList());
+    	
+        return new ResponseEntity<>(nonDeletedReplies, HttpStatus.OK);
     }
     
     @GetMapping("/all/user")
@@ -82,7 +87,10 @@ public class CommentController {
     	 rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
     	    if (currentUser != null) {
     	        List<Comment> posts = commentService.findAllByUserId(currentUser);
-    	        return new ResponseEntity<>(posts, HttpStatus.OK);
+    	        List<Comment> nonDeletedReplies = posts.stream()
+    	                .filter(reply -> !reply.isDeleted())
+    	                .collect(Collectors.toList());
+    	        return new ResponseEntity<>(nonDeletedReplies, HttpStatus.OK);
     	    } else {
     	        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     	    }
@@ -108,8 +116,11 @@ public class CommentController {
                 userCommentsAndRepliesForPost.addAll(userReplies);
             }
         }
+        List<Comment> nonDeletedReplies = userCommentsAndRepliesForPost.stream()
+                .filter(reply -> !reply.isDeleted())
+                .collect(Collectors.toList());
 
-        return new ResponseEntity<>(userCommentsAndRepliesForPost, HttpStatus.OK);
+        return new ResponseEntity<>(nonDeletedReplies, HttpStatus.OK);
     }
 
     public List<Comment> getUserRepliesForPost(Comment parentComment) {
@@ -125,8 +136,11 @@ public class CommentController {
                 userRepliesForPost.addAll(userReplies);
             }
         }
+        List<Comment> nonDeletedReplies = userRepliesForPost.stream()
+                .filter(reply -> !reply.isDeleted())
+                .collect(Collectors.toList());
 
-        return userRepliesForPost;
+        return nonDeletedReplies;
     }
 
 
@@ -134,20 +148,27 @@ public class CommentController {
     @GetMapping("/all/post")
     //@PreAuthorize("hasRole('USER')")
     //@CrossOrigin(origins = "http://localhost:4200")
-    public ResponseEntity<Set<Comment>> getAllPostComments(@RequestParam Long id){
+    public ResponseEntity<List<Comment>> getAllPostComments(@RequestParam Long id){
     	Post post=postService.findPost(id);
     	Set<Comment> posts = post.getComments();
-    	return new ResponseEntity<>(posts, HttpStatus.OK);
+    	
+    	List<Comment> nonDeletedReplies = posts.stream()
+    	            .filter(comment -> !comment.isDeleted())
+    	            .collect(Collectors.toList());
+    	return new ResponseEntity<>(nonDeletedReplies, HttpStatus.OK);
 
     }
     
     @GetMapping("/commentReplies")
     //@PreAuthorize("hasRole('USER')")
     //@CrossOrigin(origins = "http://localhost:4200")
-    public ResponseEntity<Set<Comment>> getAllCommentReplies(@RequestParam Long id){
+    public ResponseEntity<List<Comment>> getAllCommentReplies(@RequestParam Long id){
     	Comment com=commentService.findComment(id);
     	Set<Comment> replies = com.getRepliesComment();
-    	return new ResponseEntity<>(replies, HttpStatus.OK);
+    	List<Comment> nonDeletedReplies = replies.stream()
+	            .filter(comment -> !comment.isDeleted())
+	            .collect(Collectors.toList());
+    	return new ResponseEntity<>(nonDeletedReplies, HttpStatus.OK);
 
     }
 
@@ -221,6 +242,7 @@ public class CommentController {
 	        post.setDislikes(0);
 	        post.setHearts(0);
 	        post.setShowReplies(false);
+	        post.setDeleted(false);
 	        
 	        
 	    Comment createdPost = commentService.save(post);//postService.createPost(newPost);
@@ -298,7 +320,7 @@ public class CommentController {
 	        edit.setText(editPost.getText());
 	        edit.setTimestamp(LocalDateTime.now());
 	        edit.setUserId(currentUser);
-	        edit.setDeleted(editPost.isDeleted());
+	        //edit.setDeleted(editPost.isDeleted());
   
 	        commentService.save(edit);
 
@@ -327,11 +349,14 @@ public class CommentController {
 	        reply.setText(replyDTO.getText());
 	        reply.setTimestamp(LocalDateTime.now());
 	        reply.setDeleted(false);
+	        Post po = postService.findPost(replyDTO.getPost());
+	        reply.setPost(po);
 	        //reply.setPost(p);
 	        reply.setUserId(currentUser);
 	        reply.setLikes(0);
 	        reply.setDislikes(0);
 	        reply.setHearts(0);
+	        reply.setDeleted(false);
 
 	        // Dodavanje odgovora parent komentaru
 	        parentComment.getRepliesComment().add(reply);
@@ -368,7 +393,12 @@ public class CommentController {
 	    } else {
 	        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 	    }
-	    return new ResponseEntity<>(comments, HttpStatus.OK);
+	    
+	    List<Comment> nonDeletedReplies = comments.stream()
+	            .filter(comment -> !comment.isDeleted())
+	            .collect(Collectors.toList());
+	    
+	    return new ResponseEntity<>(nonDeletedReplies, HttpStatus.OK);
 	}
 	public int countReactions(Set<Reaction> reactions, ReactionType reactionType) {
 	    int count = 0;

@@ -1,0 +1,29 @@
+<div class="container3" >
+      <div class="row">
+          <div class="col" style="">
+			<table>
+			  <thead>
+			    <tr>
+			      <th>User</th>
+			      <th>Group</th>
+			      <th>Date</th>
+			      <th>Actions</th>
+			    </tr>
+			  </thead>
+			  <tbody>
+			    <tr *ngFor="let request of groupRequests">
+			      <td>
+			      <a [routerLink]="['/profile', request.user_id.id]">{{ request.user_id.displayName }}</a>
+			      </td>
+			      <td>{{ request.group.name }}</td>
+			      <td>{{ formatTimestamp(request.createdAt) }}</td>
+			      <td>
+			        <button (click)="approveRequest(request.id)">Accept</button>
+			        <button (click)="rejectRequest(request.id)">Decline</button>
+			      </td>
+			    </tr>
+			  </tbody>
+			</table>
+  </div>
+  </div>
+  </div>

@@ -32,7 +32,9 @@ export interface Group {
   styleUrls: ['./groups-list.component.css']
 })
 export class GroupsListComponent implements OnInit {
-  @Input() groups: any[]
+  @Input() groups: any[];
+  @Input() posts: any[];
+  @Input() currentUser: any; 
   editing = false;
   form: FormGroup
   private ngUnsubscribe: Subject<void> = new Subject<void>();
@@ -61,7 +63,6 @@ export class GroupsListComponent implements OnInit {
   selectedPostForEditing2: any;
 	selectedComForEditing: any;
 	komKojiMenjamo:any;
-	currentUser:any;
 	showDropdown = false;
 	createGroup=false;
 	form6 = new FormGroup({
@@ -69,7 +70,11 @@ export class GroupsListComponent implements OnInit {
     description: new FormControl('')
   });
 	commentDropdownStatus: { [commentId: number]: { open: boolean } } = {};
+	chosedGroup = false;
+	group: any;
+	postList: any[];
 
+	
   constructor(
 	private location: Location,
 	private cdr: ChangeDetectorRef,
@@ -105,12 +110,6 @@ export class GroupsListComponent implements OnInit {
    
 
    ngOnInit() {
-	
-	if (this.authService.tokenIsPresent()) {
-    this.userService.getMyInfo().subscribe(user => {
-		this.currentUser=user.id;
-    });
-  }
 
 
    this.postService.getAllRndm().subscribe((posts) => {
@@ -128,6 +127,21 @@ export class GroupsListComponent implements OnInit {
     }
   });
 
+  }
+    
+  handleGroupClick(group) {
+  this.getGroupPosts(group.id);
+  this.group=group;
+  this.chosedGroup=true;
+}
+
+  
+  getGroupPosts(id:number){
+	console.log("pozv");
+    this.groupService.getGroupPosts(id).subscribe((posts) => {
+    this.postList= posts    
+     this.cdr.detectChanges();
+    })
   }
  	
 	toggleCommentDropdown(commentId: number) {
@@ -165,11 +179,16 @@ export class GroupsListComponent implements OnInit {
 	  }
 	  
 	  praviGrupu() {
+		
     this.createGroup=true;
   }
   	  cancel() {
+	    for ( const g of this.groups){
+	console.log(g);
+}
     this.createGroup=false;
   }
+  
   
       napraviGrupu() {
 		 if (!this.form6.value.name){
@@ -177,9 +196,38 @@ export class GroupsListComponent implements OnInit {
 		}else{console.log(this.form6.value);
    // this.submitted = true;
    // console.warn('Your order has been submitted', this.forma.value);
-    this.groupService.create(this.form6.value)
+    this.groupService.create(this.form6.value).subscribe(
+	res=>{
+	this.groupService.getAllForUser2().subscribe((groupsUpdated) => {
+    this.groups= groupsUpdated;
+    this.cdr.detectChanges();
+    })
+	}	
+	);
     this.createGroup=false;
 	this.form6.reset();}
+  }
+  
+   deleteGroup(groupId: number) {
+	
+	const isConfirmed = confirm("Da li ste sigurni?");
+    if (isConfirmed) {
+        this.groupService.delete(groupId).subscribe(res => {
+		this.groupService.getAllForUser2().subscribe((groupsUpdated) => {
+		console.log(groupsUpdated);
+	    this.groups= groupsUpdated;
+	    if(this.group){
+		if(this.group.id==groupId){
+			this.chosedGroup=false;
+			this.group=null;
+	}
+	}
+	    this.cdr.detectChanges();
+    })
+	
+	});
+    
+    }
   }
 	  
 	sortPosts(tip: string) {
@@ -286,6 +334,41 @@ export class GroupsListComponent implements OnInit {
             id:comment.id
         });
     }
+    
+    editGroup(groupId, groupName, groupDesc) {
+    this.editing = true;
+    this.route.params
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe((params: DisplayMessage) => {
+        this.notification = params;
+      });
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+    this.form = this.formBuilder.group({
+      id: groupId,
+      name: ['', Validators.compose([Validators.required, Validators.minLength(3), Validators.maxLength(64)])],
+      description: ['', Validators.compose([Validators.required, Validators.minLength(3), Validators.maxLength(64)])],
+    });
+    this.form.get("name").setValue(groupName)
+    this.form.get('description').setValue(groupDesc)
+  }
+
+	onSubmit() {
+	  const editedGroup = this.form.value;
+	  this.editing = false;
+	
+	  this.groupService.editGroup(editedGroup).subscribe((result) => {
+	   
+	    const editedGroupIndex = this.groups.findIndex(group => group.id === editedGroup.id);
+	
+	    if (editedGroupIndex !== -1) { 
+	      this.groups[editedGroupIndex] = result;
+	      this.group=result;
+	      this.cdr.detectChanges();
+	    }
+	  });
+	  
+	}
+
     
    editComment2(post:any,comment:any,reply: any) {
 		this.selectedPostForEditing2 = post;
@@ -463,13 +546,24 @@ getPosts() {
     });
     this.form.get("id").setValue(postId);
     this.form.get("content").setValue(postContent)
-    console.log(this.getImagesSize1(postImages));
     
     this.form.get("images").setValue(this.getImagesPathString(postImages));
-    console.log(this.getImagesPathString(postImages));
   }
 
 
+getImagesPathString(postImages:any): string {
+  return this.getImagesSize1(postImages).join(','); // Spajamo putanje slika separatorom ', '
+}
+
+getImagesSize1(images: any): string[] {
+  const imagePaths2: string[] = [];
+  if (images) {
+    for (const image of images.values()) {
+      imagePaths2.push(decodeURIComponent(image.path));
+    }
+  }
+  return imagePaths2;
+}
 
 
 }

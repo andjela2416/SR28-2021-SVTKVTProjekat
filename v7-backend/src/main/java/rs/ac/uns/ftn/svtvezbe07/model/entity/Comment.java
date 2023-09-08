@@ -50,7 +50,7 @@ public class Comment {
 	@Column(columnDefinition = "BOOL",name="isdeleted")
 	private boolean isDeleted;
 
-	@JsonIgnoreProperties({"friends", "lastName", "firstName","description","password","displayName","lastLogin","role","email"})
+	@JsonIgnoreProperties({"friends", "lastName", "firstName","description","password","lastLogin","role","email"})
 	@OneToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name="user_id")
 	private User userId;

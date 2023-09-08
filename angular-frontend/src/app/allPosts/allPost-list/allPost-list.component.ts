@@ -32,9 +32,14 @@ export interface Post {
   styleUrls: ['./allPost-list.component.css']
 })
 export class AllPostListComponent implements OnInit {
-  @Input() posts: any[]
+  @Input() posts: any[];
+  @Input() grupa: any;
+  @Input() your: any; 
   editing = false;
+  activeDropdownId: { id: number, type: string } | null = null;
+  editingPostDiv = false;
   form: FormGroup
+   editPostForm: FormGroup
   private ngUnsubscribe: Subject<void> = new Subject<void>();
   notification: DisplayMessage;
   returnUrl: string;
@@ -49,7 +54,13 @@ export class AllPostListComponent implements OnInit {
     post: new FormControl('', Validators.required),
     pathSlike: new FormControl('')
   });
+  forma2 = new FormGroup({
+    post: new FormControl('', Validators.required),
+    pathSlike: new FormControl(''),
+    group: new FormControl('')
+  });
   submitted2=false;
+  submitted3=false;
   commentFormControl = new FormControl('');
   replyFormControl = new FormControl('');
   replyFormControl2 = new FormControl('');
@@ -68,9 +79,12 @@ export class AllPostListComponent implements OnInit {
     name: new FormControl('', Validators.required),
     description: new FormControl('')
   });
-	commentDropdownStatus: { [commentId: number]: { open: boolean } } = {};
+	postDropdownStatus: { [postId: number]: { open: boolean, type: string } } = {};
+	commentDropdownStatus: { [commentId: number]: { open: boolean, type: string } } = {};
 	isReportMenuOpen: boolean = false;
+	isReportMenuOpen2: boolean = false;
 selectedReportReason: string = "";
+selectedReportReason2: string = "";
 reportReasons: string[] = [
   "BREAKES_RULES",
   "HARASSMENT",
@@ -83,7 +97,7 @@ reportReasons: string[] = [
   "SELF_HARM_OR_SUICIDE",
   "OTHER"
 ];
-
+submittedEdit = false;
 
   constructor(
 	private location: Location,
@@ -122,6 +136,7 @@ reportReasons: string[] = [
    ngOnInit() {
 	
 	if (this.authService.tokenIsPresent()) {
+		console.log("h");
     this.userService.getMyInfo().subscribe(user => {
 		this.currentUser=user.id;
     });
@@ -134,6 +149,7 @@ reportReasons: string[] = [
         console.log(image);
       }
     }
+    console.log(this.posts);
     for (const post of posts) {
 	console.log(post.comments.length);
         for (const comment of post.comments) {
@@ -144,23 +160,98 @@ reportReasons: string[] = [
   });
 
   }
- 	
-	toggleCommentDropdown(commentId: number) {
-	  for (const id in this.commentDropdownStatus) {
-	    if (id !== commentId.toString()) {
-	      this.commentDropdownStatus[id].open = false;
-	    }
-	  }
-	  if (!this.commentDropdownStatus[commentId]) {
-	    this.commentDropdownStatus[commentId] = { open: true };
-	  } else {
-	    this.commentDropdownStatus[commentId].open = !this.commentDropdownStatus[commentId].open;
-	  }
+   onSubmitEdit() {
+   if (this.editPostForm.valid && this.editingPostDiv) {	  
+	if (this.authService.tokenIsPresent()) {
+		 if (!this.editPostForm.value.content){
+			 alert('Tekst je obavezno polje objave');
+		}else{
+    this.submittedEdit = true;
+    console.warn('Your order has been submitted', this.editPostForm.value);
+    
+     this.postService.edit(this.editPostForm.value).subscribe(() => {
+    this.postService.getAllFromUser().subscribe((posts) => {
+      this.posts = posts; 
+      this.editingPostDiv=false;
+        this.cdr.detectChanges();
+    });
+  })
+
+	this.editPostForm.patchValue({
+  	content: '',
+ 	images: ''
+	});;}
+	
 	}
+	 else {
+    alert('Morate se prvo ulogovati');
+    // Dodajte logiku koju želite da primenite ako korisnik nije ulogovan
+  }}
+  }
+ 	
+	toggleCommentDropdown(data: { id: number, type: string }) {
+  console.log(this.activeDropdownId);
+  const commentId = data.id; 
+  const commentType = data.type; 
+
+  if (this.activeDropdownId !== null && (this.activeDropdownId.id !== commentId || this.activeDropdownId.type !== commentType)) {
+    console.log("u");
+    if (this.activeDropdownId.type === "comment") {
+      this.commentDropdownStatus[this.activeDropdownId.id].open = false;
+      console.log("Zatvori prethodni padajući meni za komentar");
+    } else if (this.activeDropdownId.type === "post") {
+      this.postDropdownStatus[this.activeDropdownId.id].open = false;
+      console.log("Zatvori prethodni padajući meni za post");
+    }
+  }
+  
+  if (!this.commentDropdownStatus[commentId]) {
+    this.commentDropdownStatus[commentId] = { open: true, type: commentType  };
+    console.log("Otvori novi padajući meni za komentar");
+  } else {
+    this.commentDropdownStatus[commentId].open = !this.commentDropdownStatus[commentId].open;
+    console.log("Preklopi stanje padajućeg menija za komentar");
+  }
+  
+  this.activeDropdownId = { id: commentId, type: commentType };
+  this.cdr.detectChanges();
+}
+
+
+togglePostDropdown(data: { id: number, type: string }) {
+  console.log(this.activeDropdownId);
+  const postId = data.id; 
+  const postType = data.type; 
+
+  if (this.activeDropdownId !== null && (this.activeDropdownId.id !== postId || this.activeDropdownId.type !== postType)){
+    if (this.activeDropdownId.type === "comment") {
+      this.commentDropdownStatus[this.activeDropdownId.id].open = false;
+      console.log("Zatvori prethodni padajući meni za komentar");
+    } else if (this.activeDropdownId.type === "post") {
+      this.postDropdownStatus[this.activeDropdownId.id].open = false;
+      console.log("Zatvori prethodni padajući meni za post");
+    }
+  }
+  
+  if (!this.postDropdownStatus[postId]) {
+    this.postDropdownStatus[postId] = { open: true, type: postType  };
+    console.log("Otvori novi padajući meni za post");
+  } else {
+    this.postDropdownStatus[postId].open = !this.postDropdownStatus[postId].open;
+    console.log("Preklopi stanje padajućeg menija za post");
+  }
+  
+  this.activeDropdownId = { id: postId, type: postType };
+  this.cdr.detectChanges();
+}
 
 	
 	closeCommentDropdown(commentId: number) {
 	  this.commentDropdownStatus[commentId].open = false;
+	}
+	
+	closePostDropdown(postId: number) {
+	  this.postDropdownStatus[postId].open = false;
 	}
 
 	sortComments(tip: string,post:any) {
@@ -190,31 +281,52 @@ reportReasons: string[] = [
 	  this.isReportMenuOpen = !this.isReportMenuOpen;
 	}
 	
-	selectReportReason(comment:any,reason: string): void {
+	toggleReportMenu2(): void {
+	  this.isReportMenuOpen2 = !this.isReportMenuOpen2;
+	}
+	
+	
+	selectReportReason(post:any,reason: string): void {
 	  this.selectedReportReason = reason;
 	  this.isReportMenuOpen = false; 
-	  this.toggleCommentDropdown(comment);
-	  this.reportuj(comment,reason); 
+	  this.togglePostDropdown({ id: post.id, type: 'post' });
+	  this.reportuj(reason,post,null); 
+	}
+	
+	selectReportReason2(comment:any,reason: string): void {
+	  this.selectedReportReason2 = reason;
+	  this.isReportMenuOpen2 = false; 
+	  this.toggleCommentDropdown({ id: comment.id, type: 'comment' });
+	  this.reportuj(reason,null,comment); 
 	}
 
-  
-	  reportuj(selectedCom: any, selectedReason: string) {
-	  this.comService.getAll().subscribe(posts => {
-	    const selectedPost = posts.find(post => post.id === selectedCom.id);
-	    if (selectedPost) {
-	      const novaReakcija = {
-	        id: selectedPost,
-	        reason: selectedReason,
-	      };
-	      this.userService.report3(novaReakcija).subscribe(res => {
-	        this.comService.getOneCom(selectedCom.id).subscribe(updatedPost => {
-	          alert("Uspesno ste reportovali");
-	        });
-	      });
-		    }
-		  });
-		  
-		}
+reportuj(selectedReason: string,post?,comment?) {
+  if (!selectedReason) {
+    alert("Morate selektovati razlog pre nego sto posaljete prijavu.");
+    return; 
+  }
+  if(post!=null){
+	const novaReakcija = {
+    id: post.id,
+    reason: selectedReason,
+  };
+
+  this.userService.report2(novaReakcija).subscribe(res => {
+	alert("Uspesno ste prijavili post.");
+  });	
+}
+  if(comment!=null){
+	const novaReakcija = {
+    id: comment.id,
+    reason: selectedReason,
+  };
+
+  this.userService.report3(novaReakcija).subscribe(res => {
+	alert("Uspesno ste prijavili komentar.");
+  });	
+}
+}
+ 
   
       napraviGrupu() {
 		 if (!this.form6.value.name){
@@ -332,6 +444,24 @@ reportReasons: string[] = [
         });
     }
     
+       editPost(post:any) {
+		this.selectedPostForEditing = post;
+        this.editingPostDiv = true;
+        this.editPostForm = this.formBuilder.group({
+	      id: post.id,
+	      content: ['', Validators.compose([Validators.required])],
+	      images:['']
+	    });
+	    this.editPostForm.get("id").setValue(post.id);
+	    this.editPostForm.get("content").setValue(post.content)
+	    console.log(this.getImagesSize1(post.images));
+	    
+	    this.editPostForm.get("images").setValue(this.getImagesPathString(post.images));
+	    console.log(this.getImagesPathString(post.images));
+	    this.send();
+	    }
+
+    
    editComment2(post:any,comment:any,reply: any) {
 		this.selectedPostForEditing2 = post;
 		this.selectedComForEditing = comment;
@@ -426,13 +556,33 @@ reportReasons: string[] = [
     this.editCommentForm2.reset(); 
 }
 
+    cancelEdit3() {
+	this.editingPostDiv=false;
+    this.selectedPostForEditing = null; 
+    this.editPostForm.reset(); 
+}
+
 	confirmDeleteComment(post:any,comment:any) {
     const isConfirmed = confirm("Jeste li sigurni da želite obrisati ovaj komentar? Id:"+comment.id);
     if (isConfirmed) {
         this.deleteComment(post,comment);
     }
 }
-
+	confirmDeletePost(post:any) {
+    const isConfirmed = confirm("Jeste li sigurni da želite obrisati ovaj post?");
+    if (isConfirmed) {
+        this.deletePost(post);
+    }
+}
+	deletePost(post:any) {
+		      this.postService.delete(post.id)
+		        .subscribe(res => {
+				console.log(post.id+" "+res.deleted+" post"+post);
+				this.updatePost(post.id);
+		        }, err => {
+		        
+		        });
+    }
 
 	deleteComment(post:any,comment: any) {
 		      this.comService.delete(comment.id)
@@ -456,7 +606,12 @@ reportReasons: string[] = [
                         }
                     });
 }
-
+    updatePost(n:any){
+	  this.postService.getAllFromUser().subscribe((posts) => {
+      this.posts = posts; 
+        this.cdr.detectChanges();
+    });
+}
 	confirmDeleteComment2(post:any,comment:any,reply:any) {
     const isConfirmed = confirm("Jeste li sigurni da želite obrisati ovaj komentar? Id:"+reply.id);
     if (isConfirmed) {
@@ -494,7 +649,7 @@ reportReasons: string[] = [
 
 }
 
-	  addReply(comment: any) {
+	  addReply(comment: any,post:any) {
 	   const commentContent = this.replyFormControl.value;
 	
 		if (this.authService.tokenIsPresent()) {
@@ -503,7 +658,8 @@ reportReasons: string[] = [
 			}else{
 	
 	  	const body = {
-	        text: commentContent
+	        text: commentContent,
+	        post:post
 	      };
 	     this.comService.replyToCom(comment,body)
             .subscribe(res => {
@@ -526,7 +682,7 @@ reportReasons: string[] = [
   	}
   	 this.replyFormControl.reset();
 }
-addReply2(comment: any) {
+addReply2(comment: any,post:any) {
 	
    const commentContent = this.replyFormControl2.value;
 
@@ -536,7 +692,8 @@ addReply2(comment: any) {
 		}else{
 
   	const body = {
-        text: commentContent
+        text: commentContent,
+        post:post
       };
      this.comService.replyToCom(comment,body)
         .subscribe(res => {
@@ -624,17 +781,12 @@ addComment(postId: number) {
   	 this.commentFormControl.reset();
 }
 
-  
-  deletePost(postId: number) {
-  console.log(postId);
-  this.postService.delete(postId).subscribe(() => {
-    this.postService.getAllFromUser().subscribe((posts) => {
-      this.posts = posts; 
-        this.cdr.detectChanges();
-    });
-  });
+send(){
+	    const editFormElement = document.getElementById('edit-form');
+	if (editFormElement) {
+	    editFormElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+	}
 }
-
   
 getImagesSize1(images: any): string[] {
   const imagePaths2: string[] = [];
@@ -656,6 +808,7 @@ getImagesSize2(post: any): string[] {
   return imagePaths;
 }
   onSubmitPostavi() {
+	console.log("aa"+this.grupa)
 	if (this.authService.tokenIsPresent()) {
 		 if (!this.forma.value.post){
 			 alert('Tekst je obavezno polje objave');
@@ -677,27 +830,35 @@ getImagesSize2(post: any): string[] {
 
 	
 }
-
-  editPost(postId, postContent,postImages) {
-    this.editing = true;
-    this.route.params
-      .pipe(takeUntil(this.ngUnsubscribe))
-      .subscribe((params: DisplayMessage) => {
-        this.notification = params;
-      });
-    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
-    this.form = this.formBuilder.group({
-      id: postId,
-      content: ['', Validators.compose([Validators.required])],
-      images:['']
+  onSubmitPostavi2() {
+	this.forma2.get('group').setValue(this.grupa);
+	console.log("aa"+this.grupa)
+	if (this.authService.tokenIsPresent()) {
+		 if (!this.forma2.value.post){
+			 alert('Tekst je obavezno polje objave');
+		}else{console.log(this.forma2.value.pathSlike);
+    this.submitted3 = true;
+    console.log('Your order has been submitted', this.forma2.value);
+         this.postService.createInGroup(this.forma2.value).subscribe(() => {
+    this.groupService.getGroupPosts(this.grupa.id).subscribe((posts) => {
+	console.log(posts);
+		for (const post of posts)
+		{
+			console.log(post);
+		}
+      this.posts = posts; 
+      this.editing=false;
+        this.cdr.detectChanges();
     });
-    this.form.get("id").setValue(postId);
-    this.form.get("content").setValue(postContent)
-    console.log(this.getImagesSize1(postImages));
-    
-    this.form.get("images").setValue(this.getImagesPathString(postImages));
-    console.log(this.getImagesPathString(postImages));
+  })
+	this.forma2.reset();}}
+	 else {
+    alert('Morate se prvo ulogovati');
+    // Dodajte logiku koju želite da primenite ako korisnik nije ulogovan
   }
+
+	
+}
 
     onSubmit() {
 	if (this.authService.tokenIsPresent()) {

@@ -40,6 +40,21 @@ export class GroupService {
 	console.log(body);
     return this.apiService.post(this.config.getOneGroup2_url+'/groupRequests/all/'+id);
   }
+  
+    deleteGroupRequest(id){
+	  const body = {
+	'id':id
+  };
+    return this.apiService.delete(this.config.getOneGroup2_url+ "/deleteGroupRequest/"+id )
+  }
+  
+    getGroupsRequests() {
+    return this.apiService.get(this.config.getOneGroup2_url+'/groupRequests/all');
+  }
+  
+    getGroupPosts(id) {
+    return this.apiService.get(this.config.sedam+'?id='+id);
+  }
     prihvati(id) {
 	console.log(id);
 	const body = {
@@ -240,13 +255,13 @@ sort2(sort) {
 	};
     console.log(body);
     return this.apiService.post(this.config.groupcreate_url, JSON.stringify(body), loginHeaders)
-      .subscribe((res) => {
+     /* .subscribe((res) => {
         if(res.body == "NOT_ACCEPTABLE" || res.name == "HttpErrorResponse")
         {
           alert("try again")
         }else {
           alert("Uspesno ste kreirali grupu");
         }
-      });
+      });*/
   }
 }
