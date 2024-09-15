@@ -27,4 +27,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 //    User findByIdWithGroups(@Param("userId") Integer userId);
 //    @EntityGraph(attributePaths = "groups")
 //    Optional<User> findByIdWithGroups(Integer id);
+    @Query("SELECT u.friends FROM User u WHERE u.id = :userId")
+    List<User> getFriends(@Param("userId") Integer userId);
 }

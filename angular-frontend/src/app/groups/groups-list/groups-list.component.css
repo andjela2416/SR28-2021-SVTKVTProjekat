@@ -54,7 +54,7 @@ table, th, td {
 
 .scroll{
   overflow-y: auto;
-  max-height:200px;
+  max-height:300px;
 }
 
 .centered-container {

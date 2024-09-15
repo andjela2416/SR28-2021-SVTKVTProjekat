@@ -59,14 +59,11 @@ public class CommentController {
  	private static final Logger logger = LogManager.getLogger(Log4jExample.class);
  	@Autowired
     UserService userService;
- 		
- 	@Autowired
- 	private ImageRepository imageRepository;
 
- 	@Transactional
- 	public void deleteImage(Long imageId) {
- 	    imageRepository.deleteById(imageId);
- 	}
+// 	@Transactional
+// 	public void deleteImage(Long imageId) {
+// 	    imageRepository.delete(imageId);
+// 	}
 
 
     @GetMapping("/all")
@@ -77,6 +74,7 @@ public class CommentController {
                 .filter(reply -> !reply.isDeleted())
                 .collect(Collectors.toList());
     	
+        logger.info("Vracena lista svih komentara");
         return new ResponseEntity<>(nonDeletedReplies, HttpStatus.OK);
     }
     
@@ -90,6 +88,7 @@ public class CommentController {
     	        List<Comment> nonDeletedReplies = posts.stream()
     	                .filter(reply -> !reply.isDeleted())
     	                .collect(Collectors.toList());
+    	        logger.info("Vracena lista komentara usera");
     	        return new ResponseEntity<>(nonDeletedReplies, HttpStatus.OK);
     	    } else {
     	        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
@@ -119,18 +118,18 @@ public class CommentController {
         List<Comment> nonDeletedReplies = userCommentsAndRepliesForPost.stream()
                 .filter(reply -> !reply.isDeleted())
                 .collect(Collectors.toList());
-
+        logger.info("Vracena lista komentara i odgovora na komentare usera");
         return new ResponseEntity<>(nonDeletedReplies, HttpStatus.OK);
     }
 
     public List<Comment> getUserRepliesForPost(Comment parentComment) {
         rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
-        logger.info("gyyyyzh");
+        
         List<Comment> userRepliesForPost = new ArrayList<>();
 
         for (Comment reply : parentComment.getRepliesComment()) {
             if (reply.getUserId().equals(currentUser)) {
-            	logger.info("gyyyh");
+            	
                 userRepliesForPost.add(reply);
                 List<Comment> userReplies = getUserRepliesForPost(reply);
                 userRepliesForPost.addAll(userReplies);
@@ -139,7 +138,8 @@ public class CommentController {
         List<Comment> nonDeletedReplies = userRepliesForPost.stream()
                 .filter(reply -> !reply.isDeleted())
                 .collect(Collectors.toList());
-
+        
+        logger.info("Vracena lista odgovore na komentare");
         return nonDeletedReplies;
     }
 
@@ -155,6 +155,7 @@ public class CommentController {
     	List<Comment> nonDeletedReplies = posts.stream()
     	            .filter(comment -> !comment.isDeleted())
     	            .collect(Collectors.toList());
+    	logger.info("Vracena lista postova");
     	return new ResponseEntity<>(nonDeletedReplies, HttpStatus.OK);
 
     }
@@ -168,6 +169,7 @@ public class CommentController {
     	List<Comment> nonDeletedReplies = replies.stream()
 	            .filter(comment -> !comment.isDeleted())
 	            .collect(Collectors.toList());
+    	logger.info("Vracena lista odgovora na komentare");
     	return new ResponseEntity<>(nonDeletedReplies, HttpStatus.OK);
 
     }
@@ -189,6 +191,7 @@ public class CommentController {
         if(post==null){
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
+        logger.info("Vracen komentar");
         return new ResponseEntity<>(post, HttpStatus.OK);
         
 //        rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
@@ -224,7 +227,6 @@ public class CommentController {
 //			}
 		Long p=newPost.getPost();
 		
-		logger.info("pozvano");
 		
 			Post po = postService.findPost(p);
 		 	rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
@@ -254,7 +256,7 @@ public class CommentController {
         postService.save(po);
         
         Comment c=commentService.findCommentByText(post.getText());
-
+        logger.info("Kreiran komentar");
         return new ResponseEntity<>(c, HttpStatus.CREATED);
     }
 
@@ -285,7 +287,7 @@ public class CommentController {
 	    
 	    comm.setDeleted(true);    
 	    commentService.save(comm);
-	    
+	    logger.info("Obrisan komentar");
 	    return new ResponseEntity<>(comm, HttpStatus.OK);
 	}
                                       
@@ -296,9 +298,6 @@ public class CommentController {
 	    	rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
 	     	
 	        Comment edit = commentService.findComment(editPost.getId());
-	        if(edit==null) {
-	        	throw new Exception("d");
-	        }
 	        //Long l = editPost.getPost();
 	        //Post p =postService.findPost(l);
 	        if (!editPost.getReplies().isEmpty()) {
@@ -325,6 +324,7 @@ public class CommentController {
 	        commentService.save(edit);
 
 	        Comment c=commentService.findComment(edit.getId());
+	        logger.info("Vracena editovan komentar");
 	        return new ResponseEntity<>(c, HttpStatus.OK);
 //	    } catch (Exception e) {
 //	    	logger.info("error: "+e.getMessage());
@@ -362,7 +362,7 @@ public class CommentController {
 	        parentComment.getRepliesComment().add(reply);
 	        commentService.save(reply);
 	        commentService.save(parentComment);
-
+	        logger.info("Dodan odgovor na komentar");
 	        return new ResponseEntity<>(reply, HttpStatus.OK);
 	 
 	}
@@ -397,7 +397,7 @@ public class CommentController {
 	    List<Comment> nonDeletedReplies = comments.stream()
 	            .filter(comment -> !comment.isDeleted())
 	            .collect(Collectors.toList());
-	    
+	    logger.info("Vracena sortirana lista komentara");
 	    return new ResponseEntity<>(nonDeletedReplies, HttpStatus.OK);
 	}
 	public int countReactions(Set<Reaction> reactions, ReactionType reactionType) {

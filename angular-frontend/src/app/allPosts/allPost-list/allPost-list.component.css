@@ -7,6 +7,101 @@
   margin-top:18px;
   
 }
+.slike-container22 {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.slika22{
+  width: calc(33.33% - 10px); 
+  margin-bottom: 10px;
+}
+.slika {
+  width: 180px;
+  height: 180px; 
+  object-fit: cover; 
+  margin:5px;
+}
+.slika-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; 
+  align-items: center;
+  text-align: center;
+}
+
+.slika33 {
+  position: relative;
+  margin-right: 10px; 
+  margin-bottom: 10px; 
+  flex: 0 0 calc(50% - 10px); 
+  max-width: calc(50% - 10px); 
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  position: relative;
+}
+
+.slika img {
+  max-width: 100%;
+  height: auto;
+}
+.slika-wrapper {
+  position: relative;
+  flex: 0 0 calc(50% - 10px); 
+  max-width: calc(50% - 10px);
+  box-sizing: border-box;
+ /*border: 1px solid #ccc;*/
+}
+.profile-photo {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  bottom:15px;
+}
+
+.profile-photo label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+
+.profile-photo label span {
+  background-color: #769cb5;
+  color: #fff; 
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  margin-top: 5px;
+  cursor: pointer;
+}
+
+.profile-photo input[type="file"] {
+  display: none;
+}
+
+
+.delete-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #a55959;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.delete-button:hover {
+  color: black; 
+}
+
+img{
+	border-radius:5px;
+}
+
 
 table {
   max-width: 950px;
@@ -36,7 +131,9 @@ input {
 
 textarea {
   width: 300px;
-  height: 100px;
+  height: 60px;
+  max-width: 300px;
+  max-height: 70px;
 }
 
 .s {
@@ -75,6 +172,9 @@ textarea {
   width: 300px;
   height: 100px;
 }
+.p {
+  width: 300px;
+}
 .dugmePostavi {
   background-color: #673ab7;
   margin: 10px;
@@ -87,6 +187,7 @@ textarea {
   float:right;
   cursor: pointer;
 }
+
 .dugmePostavi2 {
   background-color: #673ab7;
   margin: 10px;
@@ -348,12 +449,12 @@ textarea {
   padding: 0;
   margin: 0;
   z-index: 1;
-  transform: translateX(-100%); /* Pomera meni skroz levo */
+  transform: translateX(-100%);
 
 }
 
 .report-reasons-dropdown.active {
-  display: block; /* Prikazuje meni kada je aktivan */
+  display: block;
 }
 
 .report-reasons-dropdown li {

@@ -26,6 +26,10 @@ table, th, td {
     width: 300px;
     height: 100px;
   }
+.scroll{
+  overflow-y: auto;
+  max-height:300px;
+}
 
 .container {
   max-width: 440px;

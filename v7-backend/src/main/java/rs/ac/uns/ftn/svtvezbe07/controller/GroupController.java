@@ -50,6 +50,7 @@ import rs.ac.uns.ftn.svtvezbe07.model.entity.Group;
 import rs.ac.uns.ftn.svtvezbe07.model.entity.GroupRequest;
 import rs.ac.uns.ftn.svtvezbe07.repository.BannedRepository;
 import rs.ac.uns.ftn.svtvezbe07.repository.ImageRepository;
+import rs.ac.uns.ftn.svtvezbe07.repository.UserRepository;
 import rs.ac.uns.ftn.svtvezbe07.service.BannedService;
 import rs.ac.uns.ftn.svtvezbe07.service.CommentService;
 import rs.ac.uns.ftn.svtvezbe07.service.GroupRequestService;
@@ -84,6 +85,8 @@ public class GroupController {
  	@Autowired
  	private ImageRepository imageRepository;
  	@Autowired
+ 	private UserRepository userRepository;
+ 	@Autowired
  	private BannedRepository bannedRepository;
  	
  	 @GetMapping("/random")
@@ -93,26 +96,39 @@ public class GroupController {
         
          rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
   		
+         List<rs.ac.uns.ftn.svtvezbe07.model.entity.User> friends = userRepository.getFriends(currentUser.getId());
+
          //grupe koje je on napravio
-         Set<Group> userGroups = currentUser.getGroups();
-         
+         Set<Group> userGroups = new HashSet<>();
          List<Group> allGroups = groupService.getAll();
 
          for (Group g:allGroups){
-        	 boolean a=userBelongsToGroup(currentUser,g);
-        	 if(a==true) {
-        		 userGroups.add(g);
-        	 }
+        	 	boolean userIsAdmin = userIsAdmin(currentUser,g);
+        	    boolean userBelongsToGroup = userBelongsToGroup(currentUser, g);
+        	    boolean userIsAddedAdmin = userIsAddedAdmin(currentUser, g);
+
+        	    if ((userBelongsToGroup || userIsAddedAdmin || userIsAdmin) && !g.isSuspended() && !g.isDeleted()) {
+        	        userGroups.add(g);
+        	    }
          }
          
+         
          List<Post> allGroupAndPublicPosts = new ArrayList<>();
-
          
          for (Post post : allPosts) {
              if (post.getGroup() != null && userGroups.contains(post.getGroup()) && post.isDeleted()==false) {
                  allGroupAndPublicPosts.add(post);
              } else if (post.getGroup() == null && post.isDeleted()==false) {
-                 allGroupAndPublicPosts.add(post);
+            	 for(rs.ac.uns.ftn.svtvezbe07.model.entity.User u : friends) {
+            		 System.out.println(u.getId());
+            		 if(post.getPostedBy().getId().equals(u.getId()))
+            			 {
+            			 allGroupAndPublicPosts.add(post);
+            			 };
+            	 }      
+             }if(post.getGroup() == null && post.isDeleted()==false && post.getPostedBy().getId().equals(currentUser.getId())) {        	 
+            	 allGroupAndPublicPosts.add(post);
+            	 System.out.println(post.getId());
              }
          }
          Random random = new Random();
@@ -122,13 +138,47 @@ public class GroupController {
              allGroupAndPublicPosts.set(i, allGroupAndPublicPosts.get(j));
              allGroupAndPublicPosts.set(j, temp);
          }
-
+         logger.info("Vracena random lista postova");
          return new ResponseEntity<>(allGroupAndPublicPosts, HttpStatus.OK);
+     }
+ 	 
+     @GetMapping("/all/{idUser}/users")
+     //@PreAuthorize("hasRole('ADMIN')")
+     public ResponseEntity<Set<Group>> getAll(@PathVariable Integer idUser) throws Exception{
+    	 try {
+    	 java.util.Optional<rs.ac.uns.ftn.svtvezbe07.model.entity.User> u =userService.findById(idUser);
+    	 Set<Group> userGroups = u.get().getGroups();
+         List<Group> allGroups = groupService.getAll();
+
+         for (Group g:allGroups){
+        	    boolean userIsAdmin = userIsAdmin(u.get(),g);
+        	    boolean userBelongsToGroup = userBelongsToGroup(u.get(), g);
+        	    boolean userIsAddedAdmin = userIsAddedAdmin(u.get(), g);
+
+        	    if ((userBelongsToGroup || userIsAddedAdmin || userIsAdmin) && !g.isSuspended() && !g.isDeleted()) {
+        	        userGroups.add(g);
+        	    }
+         }
+         logger.info("Vracena lista grupa usera");
+         return new ResponseEntity<>(userGroups, HttpStatus.OK);}
+    	 catch(Exception e) {
+    		 throw new Exception(e.getMessage());
+    	 }
      }
 
 	private boolean userBelongsToGroup(rs.ac.uns.ftn.svtvezbe07.model.entity.User user, Group group) {
  	    Set<rs.ac.uns.ftn.svtvezbe07.model.entity.User> groupMembers = group.getMembers();
  	    return groupMembers.contains(user);
+ 	}
+	
+	private boolean userIsAddedAdmin(rs.ac.uns.ftn.svtvezbe07.model.entity.User user, Group group) {
+ 	    Set<rs.ac.uns.ftn.svtvezbe07.model.entity.User> groupadm = group.getAddedGroupAdmins();
+ 	    return groupadm.contains(user);
+ 	}
+	
+	private boolean userIsAdmin(rs.ac.uns.ftn.svtvezbe07.model.entity.User user, Group group) {
+ 	    rs.ac.uns.ftn.svtvezbe07.model.entity.User groupadm =  group.getGroupAdmin();
+ 	    return groupadm.equals(user);
  	}
 
 	@GetMapping("/reports")
@@ -139,8 +189,7 @@ public class GroupController {
 	            .filter(report -> !report.getAccepted()) 
 	            .collect(Collectors.toList());
 	    
-	    logger.info(filteredReports);
-	    
+	    logger.info("Vracena lista reportova");
 	    return new ResponseEntity<>(filteredReports, HttpStatus.OK);
 	}
 	
@@ -149,10 +198,57 @@ public class GroupController {
 	public ResponseEntity<List<Banned>> getAllBanns() {
 	    List<Banned> allBanns = bannedService.getAll();
 	    
-	    logger.info(allBanns);
-	    
-	    return new ResponseEntity<>(allBanns, HttpStatus.OK);
+	    List<Banned> filteredBanns = allBanns.stream()
+	            .filter(bann -> bann.getByGroupAdmin()==null) 
+	            .collect(Collectors.toList());
+	    logger.info("Vracena lista banova");
+	    return new ResponseEntity<>(filteredBanns, HttpStatus.OK);
 	}
+	
+	
+	@GetMapping("/isBanned/{id}")
+	public ResponseEntity<Boolean> isUserBannedInGroup(@PathVariable Long id) {
+	    List<Banned> allBanns = bannedService.getAll();
+	    rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
+		
+	    List<Banned> filteredBanns = allBanns.stream()
+	            .filter(bann -> bann.getTowards().getId() == currentUser.getId())
+	            .collect(Collectors.toList());
+	    
+	    List<Banned> filteredBanns2 = filteredBanns.stream()
+	            .filter(bann -> bann.getGroup() != null)
+	            .collect(Collectors.toList());
+	    
+	    Banned banned = filteredBanns2.stream()
+	    	    .filter(bann -> bann.getGroup().getId() == id )
+	    	    .findFirst()
+	    	    .orElse(null);
+
+	    
+	    if(banned!=null) {
+	    		return new ResponseEntity<>(true, HttpStatus.OK);
+	    }
+	    logger.info("Vracen odgovor da li je user banovan u grupi");
+	    return new ResponseEntity<>(false, HttpStatus.OK);
+	}
+	
+	@GetMapping("/banns2")
+	@PreAuthorize("hasAnyRole( 'GROUPADMIN','ADMIN')")
+	public ResponseEntity<List<Banned>> getAllBannsByGroupAdmin() {
+		rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
+	    List<Banned> allBanns = bannedService.getAll();
+	    
+	    List<Banned> filteredBanns = allBanns.stream()
+	            .filter(bann -> bann.getByGroupAdmin()!=null) 
+	            .collect(Collectors.toList());
+	    
+	    List<Banned> filteredBanns2 = filteredBanns.stream()
+	            .filter(bann -> bann.getByGroupAdmin().getId()==currentUser.getId()) 
+	            .collect(Collectors.toList());
+	    logger.info("Vracena lista banova od strane admina grupe");
+	    return new ResponseEntity<>(filteredBanns2, HttpStatus.OK);
+	}
+
 
  	 
  	 
@@ -160,6 +256,13 @@ public class GroupController {
      public ResponseEntity<List<Report>> getAllReports2() throws Exception {
  		rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
  	    Set<Group> userGroups = currentUser.getGroups();
+ 	    
+ 	    List<Group> gr=groupService.getAll();
+ 	    for(Group g:gr) {
+ 	    	if(g.getAddedGroupAdmins().contains(currentUser)) {
+ 	    		userGroups.add(g);
+ 	    	}
+ 	    }
 
  	    List<Report> allReports = reportService.getAll();
  	    List<Report> filteredReports = new ArrayList<>();
@@ -169,28 +272,22 @@ public class GroupController {
  	            filteredReports.add(report);
  	        }
  	    }
- 	    logger.info("greska2"+filteredReports);
  	    List<Report> filteredReports2 = filteredReports.stream()
 	            .filter(report -> !report.getAccepted()) 
 	            .collect(Collectors.toList());
- 	    
+ 	    logger.info("Vracena lista reportova ");
  	    return new ResponseEntity<>(filteredReports2, HttpStatus.OK);
      }
  	 
  	private boolean belongsToUserGroup(Report report, Set<Group> userGroups) throws Exception {
  	    if (report.getReported2() != null) {
- 	    	logger.info("greska3");
  	        Post post = report.getReported2();
- 	       logger.info(post.getGroup());
- 	       logger.info(userGroups);
  	        if (post.getGroup() != null && userGroups.contains(post.getGroup())) {
- 	        	logger.info("greska4");
  	            return true;
  	        }
  	    }
  	    
  	    if (report.getReported3() != null) {
- 	    	logger.info("greska5");
  	        Comment comment = report.getReported3();
  	        Post parentPost = comment.getPost();
  	        if (parentPost != null && parentPost.getGroup() != null && userGroups.contains(parentPost.getGroup())) {
@@ -208,9 +305,6 @@ public class GroupController {
  		  
 
  		        Report edit = reportService.findReport(editPost.getId());
- 		        if(edit==null) {
- 		        	throw new Exception("d");
- 		        }
 
  		        edit.setAccepted(editPost.getAccepted());
 
@@ -218,7 +312,7 @@ public class GroupController {
 
 
  		        Report p=reportService.findReport(edit.getId());
-
+ 		       logger.info("Prihvacen report");   
  	        return new ResponseEntity<>(p, HttpStatus.OK);
  		
  		}
@@ -228,7 +322,7 @@ public class GroupController {
  	    public ResponseEntity<Report> deleteReport(@PathVariable Long id) {
  	       /* boolean deleted =*/ reportService.delete(id);
  	       Report post = reportService.findReport(id);
- 		   // post.setDeleted(true);
+ 		   //post.setDeleted(true);
  		    reportService.delete(id);
  		    return new ResponseEntity<>(post, HttpStatus.OK);
 // 	        if (deleted) {
@@ -242,6 +336,7 @@ public class GroupController {
      public ResponseEntity<Report> getReportById(@PathVariable Long id) {
          Report report = reportService.findReport(id);
          if (report != null) {
+        	 logger.info("Vracena report po ID-u");
              return ResponseEntity.ok(report);
          } else {
              return ResponseEntity.notFound().build();
@@ -277,7 +372,6 @@ public class GroupController {
  		 }else if(report.getReportReason().equals(ReportReason.TRADEMARK_VIOLATION)) {
  			 report.setReportReason(ReportReason.TRADEMARK_VIOLATION);
  		 }
- 		 logger.info(report.getReportReason());
  		 report.setByUser(currentUser);
  		 if (report.getReported2Id()!=null) {
  			Post p = postService.findPost(report.getReported2Id());
@@ -302,20 +396,22 @@ public class GroupController {
 	 		 }
  		 }else {createdReport = reportService.createReport(report);
  		 }
+ 		logger.info("Napravljen report");
  		return ResponseEntity.status(HttpStatus.OK).body(createdReport);
      }
 
- 	@JsonIgnoreProperties({"isDeleted","suspended","suspendedReason"})
+ 	@JsonIgnoreProperties({"suspendedReason"})
     @GetMapping("/all")
     //@PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Group>> getAll(){
     	List<Group> l=groupService.getAll();
     	List<Group> list=new ArrayList<Group>();
     	for (Group g:l) {
-    		if (  !g.isDeleted()) {
+    		if (!g.isSuspended() &&  !g.isDeleted()) {
     			list.add(g);
     		}
     	}
+    	logger.info("Vraca sve grupe");
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
  	@GetMapping("/nisuuclanjeni")
@@ -326,69 +422,113 @@ public class GroupController {
  	    List<Group> grupeNisuUclanjeni = new ArrayList<>();
 
  	    for (Group grupa : sveGrupe) {
- 	        if (grupa.getGroupAdmin().getId() == currentUser.getId()) {
+ 	        if (grupa.getGroupAdmin()!=null && grupa.getGroupAdmin().getId() == currentUser.getId()) {
  	            // Preskoči grupu ako je trenutni korisnik admin
- 	        	logger.info("a");
  	            continue;
  	           
  	        }
+ 	       if (grupa.getAddedGroupAdmins().contains(currentUser)) {
+	            // Preskoči grupu ako je trenutni korisnik admin
+	            continue;
+	           
+	        }
 
- 	        if (grupa.isSuspended()) {
+ 	        if (grupa.isSuspended() || grupa.isDeleted()) {
  	            // Preskoči grupu ako je suspendovana
- 	        	logger.info("b");
+ 	        	
  	            continue;
  	            
  	        }
 
  	        if (!grupa.getMembers().contains(currentUser)) {
  	            grupeNisuUclanjeni.add(grupa);
- 	           logger.info("c");
+ 	           
  	        }
  	    }
  	    
-
+ 	   logger.info("Vracena listu grupa u kojima user nije");
  	    return new ResponseEntity<>(grupeNisuUclanjeni, HttpStatus.OK);
  	}
 
     @GetMapping("/uclanjeni")
     @Transactional
- 	public ResponseEntity<List<Group>> getGrupeUclanjeni( ) {
+ 	public ResponseEntity<List<Group>> getGrupeUclanjeni( ) throws Exception {
+    	try{
  		rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
      	
  	    List<Group> grupeUclanjeni = new ArrayList<>();
  	    List<Group> sveGrupe=groupService.getAll();
  	    for (Group grupa : sveGrupe) {
- 	    	 logger.info(grupa.isDeleted()+"controller");
- 	       if (grupa.getGroupAdmin().getId() == currentUser.getId() && grupa.isDeleted()==false) {
+ 	    
+ 	        if (grupa.isSuspended() || grupa.isDeleted()) {
+	            continue;
+	        }
+ 	    	 
+ 	       if ((grupa.getGroupAdmin()!=null && grupa.getGroupAdmin().getId() == currentUser.getId()) && !grupa.isDeleted() && !grupa.isSuspended()) {
  	    	  grupeUclanjeni.add(grupa);
 	        }
 
-	        if (grupa.isSuspended() || grupa.isDeleted()) {
-	            // Preskoči grupu ako je suspendovana
-	            continue;
-	        }
-
-	        if (grupa.getMembers().contains(currentUser) && grupa.isDeleted()==false) {
+	        if (((grupa.getMembers().contains(currentUser) || grupa.getAddedGroupAdmins().contains(currentUser))) && !grupa.isDeleted() && !grupa.isSuspended()) {
 	        	grupeUclanjeni.add(grupa);
 	        }
  	    }
+ 	    logger.info("Vracena lista grupa u kojima se user nalazi");
  	    return new ResponseEntity<>(grupeUclanjeni, HttpStatus.OK);
+    }catch(Exception e) {
+    	throw new Exception(e.getMessage());
+    }
+    	
+ 	}
+    
+    @GetMapping("/uclanjeni/profil/{id}")
+    @Transactional
+ 	public ResponseEntity<List<Group>> getGrupeUclanjeni2(@PathVariable Integer id  ) throws Exception {
+    	try{
+ 		java.util.Optional<rs.ac.uns.ftn.svtvezbe07.model.entity.User> u=userService.findById(id);
+ 		rs.ac.uns.ftn.svtvezbe07.model.entity.User user=u.get();
+ 	    List<Group> grupeUclanjeni = new ArrayList<>();
+ 	    List<Group> sveGrupe=groupService.getAll();
+ 	    for (Group grupa : sveGrupe) {
+ 	    	 
+ 	        if (grupa.isSuspended() || grupa.isDeleted()) {
+	            continue;
+	        }
+ 	    	 
+ 	       if ((grupa.getGroupAdmin()!=null && grupa.getGroupAdmin().getId() == user.getId()) && !grupa.isDeleted() && !grupa.isSuspended()) {
+ 	    	  grupeUclanjeni.add(grupa);
+	        }
+
+	        if (((grupa.getMembers().contains(user) || grupa.getAddedGroupAdmins().contains(user))) && !grupa.isDeleted() && !grupa.isSuspended()) {
+	        	grupeUclanjeni.add(grupa);
+	        }
+ 	    }
+ 	   logger.info("Vracena lista grupa usera");
+ 	    return new ResponseEntity<>(grupeUclanjeni, HttpStatus.OK);
+    }catch(Exception e) {
+    	throw new Exception(e.getMessage());
+    }
+    	
  	}
 
     @GetMapping("/admin")
- 	public ResponseEntity<List<Group>> getGrupe( ) {
- 		rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
-     	
- 	    List<Group> gr = new ArrayList<>();
- 	    List<Group> sveGrupe=groupService.getAll();
- 	    for (Group grupa : sveGrupe) {
- 	    	 if (grupa.getGroupAdmin().equals(currentUser)) {
- 	            gr.add(grupa);
- 	        }
- 	    }
+    public ResponseEntity<List<Group>> getGrupe() {
+        rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
 
- 	   return new ResponseEntity<>(gr, HttpStatus.OK);
- 	}
+        List<Group> gr = new ArrayList<>();
+        List<Group> sveGrupe = groupService.getAll();
+
+        for (Group grupa : sveGrupe) {
+            if ((grupa.getGroupAdmin()!=null && grupa.getGroupAdmin().equals(currentUser)) || grupa.getAddedGroupAdmins().contains(currentUser)) {
+            	if(!grupa.isDeleted() &&!grupa.isSuspended()) {
+            		gr.add(grupa);
+            	}
+                
+            }
+        }
+        logger.info("Vracena lista grupa");
+        return new ResponseEntity<>(gr, HttpStatus.OK);
+    }
+
     @GetMapping("/nisuuclanjeni/{id}")
     public ResponseEntity<Group> getOneN(@PathVariable Long id) throws Exception {
         // Bacanje izuzetka "vgf"
@@ -403,11 +543,11 @@ public class GroupController {
         if (grupaMap.containsKey(id)) {
             Group desiredGroup = grupaMap.get(id);
             if (!desiredGroup.getMembers().contains(currentUser) && !desiredGroup.isSuspended() && !desiredGroup.isDeleted()) {
-                return new ResponseEntity<>(desiredGroup, HttpStatus.OK);
+                logger.info("Vracena grupa");
+            	return new ResponseEntity<>(desiredGroup, HttpStatus.OK);
             }
         }
-
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
     }
 
     @PreAuthorize("hasAnyRole('USER', 'ADMIN','GROUPADMIN')")
@@ -427,57 +567,87 @@ public class GroupController {
         if (grupaMap.containsKey(id)) {
             Group desiredGroup = grupaMap.get(id);
             if (/*desiredGroup.getMembers().contains(currentUser) &&*/ !desiredGroup.isSuspended() && !desiredGroup.isDeleted()) {
-                return new ResponseEntity<>(desiredGroup, HttpStatus.OK);
+                logger.info("Vracena grupa");
+            	return new ResponseEntity<>(desiredGroup, HttpStatus.OK);
             }
         }
 
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
     }
 
  	
     @GetMapping("/allPosts")
-    //@PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<Post>> getAllP(@RequestParam Long  id){
+  //@PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<List<Post>> getAllP(@RequestParam Long  id){
 
-    	 Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-         String username = authentication.getName();
+  	  // Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+      // String username = authentication.getName();
+       rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
+       
 
-         Group group = groupService.findGroup(id);
-         if (group != null) {
-             rs.ac.uns.ftn.svtvezbe07.model.entity.User groupAdmin = group.getGroupAdmin();
-             Set<rs.ac.uns.ftn.svtvezbe07.model.entity.User> groupMembers = group.getMembers();
+       Group group = groupService.findGroup(id);
+       if (group != null) {
+           rs.ac.uns.ftn.svtvezbe07.model.entity.User groupAdmin = group.getGroupAdmin();
+           Set<rs.ac.uns.ftn.svtvezbe07.model.entity.User> groupMembers = group.getMembers();
+           Set<rs.ac.uns.ftn.svtvezbe07.model.entity.User> addedGroupAdmins = group.getAddedGroupAdmins();
 
-             if (groupMembers != null) {
-                 for (rs.ac.uns.ftn.svtvezbe07.model.entity.User member : groupMembers) {
-                     if (member.getUsername().equals(username)) {
-                         Set<Post> postSet = group.getPosts(); 
+           if (groupMembers != null || addedGroupAdmins != null) {
+               for (rs.ac.uns.ftn.svtvezbe07.model.entity.User member : groupMembers) {
+                   if (member.getId().equals(currentUser.getId())) {
+                       Set<Post> groupPosts = group.getPosts(); 
 
-                         List<Post> groupPosts = new ArrayList<>(postSet); 
+                       List<Post> posts = new ArrayList<>(); 
 
-                         if (groupPosts != null) {
-                             return new ResponseEntity<>(groupPosts, HttpStatus.OK);
-                         }
-                         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-                     }
-                 }
-             }
-         }
-         rs.ac.uns.ftn.svtvezbe07.model.entity.User groupAdmin = group.getGroupAdmin();
-         if (groupAdmin != null && groupAdmin.getUsername().equals(username)) {
-        	    List<Post> nova = new ArrayList<>();
-        	    Set<Post> groupPosts = group.getPosts();
-        	    if (groupPosts != null) {
-        	        for (Post p : groupPosts) {
-        	            if (!p.isDeleted()) {
-        	                nova.add(p);
-        	            }
-        	        }
-        	        return new ResponseEntity<>(nova, HttpStatus.OK);
-        	    }
-        	    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        	}
-         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-     }
+                       if (groupPosts != null) {
+                    	   for (Post p : groupPosts) {
+                               if (!p.isDeleted()) {
+                                   posts.add(p);
+                               }
+                           }
+                           logger.info("Vracena lista postova");
+                           return new ResponseEntity<>(posts, HttpStatus.OK);
+                       }
+                       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                   }
+               }
+               
+               for (rs.ac.uns.ftn.svtvezbe07.model.entity.User addedAdmin : addedGroupAdmins) {
+                   if (addedAdmin.getId().equals(currentUser.getId())) {
+                       List<Post> nova = new ArrayList<>();
+                       Set<Post> groupPosts = group.getPosts();
+                       
+                       if (groupPosts != null) {
+                           for (Post p : groupPosts) {
+                               if (!p.isDeleted()) {
+                                   nova.add(p);
+                               }
+                           }
+                           logger.info("Vracena lista postova");
+                           return new ResponseEntity<>(nova, HttpStatus.OK);
+                       }
+                       return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                   }
+               }
+           }
+           if (groupAdmin != null && groupAdmin.getId().equals(currentUser.getId())) {
+          	    List<Post> nova = new ArrayList<>();
+          	    Set<Post> groupPosts = group.getPosts();
+          	    if (groupPosts != null) {
+          	        for (Post p : groupPosts) {
+          	            if (!p.isDeleted()) {
+          	                nova.add(p);
+          	            }
+          	        }
+          	        logger.info("Vracena lista postova");
+          	        return new ResponseEntity<>(nova, HttpStatus.OK);
+          	    }
+          	    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+          	}
+       }
+      
+       return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+   }
+
     
     @GetMapping("/allPosts/your")
     //@PreAuthorize("hasRole('ADMIN')")
@@ -485,13 +655,14 @@ public class GroupController {
 
     	 Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
          String username = authentication.getName();
-
+         rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
+         
+         
          Group group = groupService.findGroup(id);
          if (group != null) {
              rs.ac.uns.ftn.svtvezbe07.model.entity.User groupAdmin = group.getGroupAdmin();
-             Set<rs.ac.uns.ftn.svtvezbe07.model.entity.User> groupMembers = group.getMembers();
-
-             if (groupAdmin != null && groupAdmin.getUsername().equals(username)) {
+             Set<rs.ac.uns.ftn.svtvezbe07.model.entity.User> groupAdmins = group.getAddedGroupAdmins();
+             if (groupAdmin != null && groupAdmin.getId().equals(currentUser.getId())) {
             	    List<Post> nova = new ArrayList<>();
             	    Set<Post> groupPosts = group.getPosts();
             	    if (groupPosts != null) {
@@ -500,10 +671,30 @@ public class GroupController {
             	                nova.add(p);
             	            }
             	        }
+            	        logger.info("Vracena lista tvojih postova");
             	        return new ResponseEntity<>(nova, HttpStatus.OK);
             	    }
             	    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             	}
+             if (groupAdmins != null) {
+            	 for (rs.ac.uns.ftn.svtvezbe07.model.entity.User addedAdmin : groupAdmins) {
+                     if (addedAdmin.getId().equals(currentUser.getId())) {
+                         List<Post> nova = new ArrayList<>();
+                         Set<Post> groupPosts = group.getPosts();
+                         
+                         if (groupPosts != null) {
+                             for (Post p : groupPosts) {
+                                 if (!p.isDeleted()) {
+                                     nova.add(p);
+                                 }
+                             }
+                             logger.info("Vracena lista tvojih postova");
+                             return new ResponseEntity<>(nova, HttpStatus.OK);
+                         }
+                         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                     }
+                 }
+         	}
 
 //
 //             if (groupMembers != null) {
@@ -524,24 +715,22 @@ public class GroupController {
     
     
     @GetMapping("/all/user")
-    //grupe kojima je ulogovani korisnik admin
-    //@PreAuthorize("hasRole('USER')")
-    //@CrossOrigin(origins = "http://localhost:4200")
-    public ResponseEntity<List<Group>> getAllUsers(){
-    	 rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
-    	    if (currentUser != null) {
-    	        List<Group> Groups = groupService.findAllByUser(currentUser);
-    	        List<Group> list=new ArrayList<Group>();
-    	    	for (Group g:Groups) {
-    	    		if ( !g.isDeleted()) {
-    	    			list.add(g);
-    	    		}
-    	    	}
-    	        return new ResponseEntity<>(list, HttpStatus.OK);
-    	    } else {
-    	        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-    	    }
+    public ResponseEntity<List<Group>> getAllUsers() {
+        rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
+        if (currentUser != null) {
+            List<Group> allGroups = groupService.getAll(); 
+            List<Group> userGroups = allGroups.stream()
+                .filter(group ->(group.getGroupAdmin()!=null && group.getGroupAdmin().equals(currentUser)) || group.getAddedGroupAdmins().contains(currentUser))
+                .filter(group -> !group.isDeleted())
+                .filter(group -> !group.isSuspended())
+                .collect(Collectors.toList());
+            logger.info("Vracena lista grupa usera");
+            return new ResponseEntity<>(userGroups, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
     }
+
     
 
    /* @GetMapping("/all")
@@ -560,6 +749,7 @@ public class GroupController {
         	gr.setAt(LocalDateTime.now());
         	gr.setDeleted(true);
             groupRequestService.save(gr);
+            logger.info("Odbijen zahtev za grupu");
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -577,7 +767,7 @@ public class GroupController {
                 User u = (User) auth.getPrincipal();
                 rs.ac.uns.ftn.svtvezbe07.model.entity.User user = userService.findByUsername(u.getUsername());
 
-                if (group.getMembers().contains(user) || group.getGroupAdmin().equals(user)) {
+                if (group.getMembers().contains(user) || group.getAddedGroupAdmins().contains(user) ||(group.getGroupAdmin()!=null && group.getGroupAdmin().equals(user))) {
                     return new ResponseEntity<>(HttpStatus.OK);
                 }
 
@@ -589,7 +779,7 @@ public class GroupController {
                 groupRequest.setGroup(group);
 
                 GroupRequest createdGroupRequest = groupRequestService.save(groupRequest);
-
+                logger.info("Napravljen zahtev za grupu");
                 return new ResponseEntity<>(createdGroupRequest, HttpStatus.CREATED);
             } else {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -608,9 +798,9 @@ public class GroupController {
             if (request.isApproved() || request.isDeleted()) {
                continue;
             }else { pendingGroupRequests.add(request);}
-            logger.info(request.isApproved()+""+request.isDeleted()+"ss");
+          
         }
-
+        logger.info("Vracena lista zahteva za grupu");
         return new ResponseEntity<>(pendingGroupRequests, HttpStatus.OK);
     }
     
@@ -626,11 +816,11 @@ public class GroupController {
                continue;
             }else { pendingGroupRequests.add(request);}
         }
-
+        logger.info("Vracena lista zahteva za grupu");
         return new ResponseEntity<>(pendingGroupRequests, HttpStatus.OK);
     }
     @PutMapping("/approve/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','USER','ADMINGROUP')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER','GROUPADMIN')")
     public ResponseEntity<GroupRequest> approveGroupRequest(@PathVariable Long id) {
         try {
             GroupRequest groupRequest = groupRequestService.findGroupRequestById(id);
@@ -643,13 +833,13 @@ public class GroupController {
                 Group group = approvedGroupRequest.getGroup();
                 rs.ac.uns.ftn.svtvezbe07.model.entity.User user = approvedGroupRequest.getUser_id();
 
-                if (group.getMembers().contains(user) || group.getGroupAdmin().equals(user)) {
+                if (group.getMembers().contains(user) || group.getAddedGroupAdmins().contains(user) || (group.getGroupAdmin()!=null && group.getGroupAdmin().equals(user))) {
                     return new ResponseEntity<>(HttpStatus.BAD_REQUEST); 
                 }
 
                 group.getMembers().add(user);
                 groupService.save(group);
-
+                logger.info("Prihvacen zahtev za grupu");
                 return new ResponseEntity<>(approvedGroupRequest, HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -668,9 +858,10 @@ public class GroupController {
        Group Group = groupService.findGroup(id);
         if(Group!=null && !Group.isSuspended() ){
         	if(!Group.isDeleted()) {
+        		logger.info("Vracena grupa");
             return new ResponseEntity<>(Group, HttpStatus.OK);}
         }
-        return new ResponseEntity<>( HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 
     }
     
@@ -695,6 +886,11 @@ public class GroupController {
 	        Group.setGroupAdmin(user);
 	        Group.setSuspended(false);
 	        Group.setDeleted(false);
+	        if(user.getRole().equals(Roles.USER)) {
+	        	user.setRole(Roles.GROUPADMIN);
+	        }
+	        
+	        userService.save(user);
 	        
 	    Group createdGroup = groupService.save(Group);//GroupService.createGroup(newGroup);
         if(createdGroup == null){
@@ -702,6 +898,7 @@ public class GroupController {
         }
 
         Group p=groupService.findByGroup(createdGroup);
+        logger.info("Vracena upravo napravljena grupa");
         return new ResponseEntity<>(p, HttpStatus.CREATED);
     }
 
@@ -718,8 +915,8 @@ public class GroupController {
 	    for (Post post : posts) {
 	        postService.delete(post.getId());
 	    }
-	    groupService.delete(id);
-	    List<Group> groups=groupService.getAll();
+	    group.setDeleted(true);
+	    groupService.save(group);
 	    return new ResponseEntity<>(new Group(), HttpStatus.OK);
 	}
 
@@ -737,10 +934,34 @@ public class GroupController {
 
         edit.setSuspended(true);
         edit.setSuspendedReason(g.getSuspendedReason());
+        edit.setGroupAdmin(null);
+        edit.setAddedGroupAdmins(null);
+        edit.setAddedGroupAdmins(new HashSet<>());
         groupService.save(edit);
-        Group p=groupService.findGroupByName(edit.getName());
+        Group p=groupService.findByGroup(edit);
+        logger.info("Suspendovana grupa");
         return new ResponseEntity<>(p, HttpStatus.OK);
 
+	}
+	
+	@PostMapping("/report/suspendByGrAdmin/{idUsera}/{idGrupe}")
+	//@PreAuthorize("hasAnyRole( 'GROUPADMIN')")
+	//@CrossOrigin()
+	public ResponseEntity<Banned> blockByGroupAdmin(@PathVariable Long idUsera,@PathVariable Long idGrupe) throws Exception {
+	
+		rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
+		Banned banUser=new Banned();
+		banUser.setByGroupAdmin(currentUser);
+		Integer idUsera2=idUsera.intValue();
+		java.util.Optional<rs.ac.uns.ftn.svtvezbe07.model.entity.User> u = userService.findById(idUsera2);
+		banUser.setTowards(u.get());
+		Group g = groupService.findGroup(idGrupe);
+		banUser.setGroup(g);
+		bannedService.save(banUser);
+		g.getMembers().remove(u.get());
+		groupService.save(g);
+		logger.info("Banovan korisnik u grupi");
+		return new ResponseEntity<>(banUser, HttpStatus.OK);
 	}
 	
 	@PostMapping("/report/suspend")
@@ -803,7 +1024,7 @@ public class GroupController {
 		
 		report.setAccepted(true);
 		Report rep=reportService.save(report);
-		
+		logger.info("Prihvacen report");
 
         return new ResponseEntity<>(rep, HttpStatus.OK);
 
@@ -817,6 +1038,38 @@ public class GroupController {
 	    if (user != null) {
 	    	Banned banned = bannedRepository.findBannedByTowards(user.get());
 	        bannedRepository.delete(banned);
+	        logger.info("Odbanovan user");
+	        return ResponseEntity.ok().build();
+	    } else {
+	        return ResponseEntity.notFound().build();
+	    }
+	}
+	@PutMapping("/unban2/{userId}/{groupId}")
+	@PreAuthorize("hasAnyRole('GROUPADMIN','ADMIN')")
+	public ResponseEntity<Void> unbanUserByGrAdmin(@PathVariable Integer userId,@PathVariable Long groupId) {
+	    java.util.Optional<rs.ac.uns.ftn.svtvezbe07.model.entity.User> user = userService.findById(userId);
+	    rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
+	       
+	    if (user != null) {
+	    	List<Banned> allBanns=bannedService.getAll();
+	    	
+	    	List<Banned> filteredBanns = allBanns.stream()
+	  	            .filter(bann -> bann.getTowards().getId().equals(user.get().getId())) 
+	  	            .collect(Collectors.toList());
+	    	
+	    	Banned filteredBann = filteredBanns.stream()
+	  	            .filter(bann -> bann.getGroup().getId().equals(groupId)) 
+	  	            .findFirst()
+		    	    .orElse(null);
+	    	
+	    	if(filteredBann.getByGroupAdmin().equals(currentUser)) {
+	    		Group g=filteredBann.getGroup();
+		    	g.getMembers().add(user.get());
+		    	groupService.save(g);
+		    	logger.info("Odbanovan user");
+		        bannedRepository.delete(filteredBann);
+	    	}
+	    	
 	        return ResponseEntity.ok().build();
 	    } else {
 	        return ResponseEntity.notFound().build();
@@ -846,15 +1099,90 @@ public class GroupController {
 
 
 	        Group p=groupService.findGroupByName(edit.getName());
+	        logger.info("Editovana grupa");
 	        return new ResponseEntity<>(p, HttpStatus.OK);
 	    } catch (Exception e) {
-	    	logger.info("error: "+e.getMessage());
-	    	throw new Exception(e.getMessage());
-		       
-	        // Izmena nije uspela
-	        //return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		       return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 	    }
 	}
 	
+	@PostMapping("/addGroupAdmin/{groupId}/{userId}")
+	@PreAuthorize("hasAnyRole('ADMIN', 'GROUPADMIN')")
+	public ResponseEntity<Group> addGroupAdminToGroup(@PathVariable Long groupId, @PathVariable Long userId) {
+	    try {
+	        Group group = groupService.findGroup(groupId);
+	        
+	        Integer intv=userId.intValue();
+	        java.util.Optional<rs.ac.uns.ftn.svtvezbe07.model.entity.User> userToAdd = userService.findById(intv);
+	        
+
+	        rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
+	        
+	        group.getAddedGroupAdmins().add(userToAdd.get());
+	        group.getMembers().remove(userToAdd.get());
+	        userToAdd.get().setRole(Roles.GROUPADMIN);
+	       // userToAdd.get().getGroups().add(group);
+	        userService.save(userToAdd.get());
+	        groupService.save(group);
+	        logger.info("Dodat group admin grupi");
+	        return new ResponseEntity<>(group, HttpStatus.OK);
+	    } catch (Exception e) {
+	        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+	    }
+	}
+
+	@PostMapping("/removeGroupAdmin/{groupId}/{userId}")
+	@PreAuthorize("hasAnyRole('ADMIN', 'GROUPADMIN')")
+	public ResponseEntity<Group> removeGrAdmin(@PathVariable Long groupId, @PathVariable Long userId) throws Exception {
+	    try {
+	        Group group = groupService.findGroup(groupId);
+	        
+	        Integer intv=userId.intValue();
+	        java.util.Optional<rs.ac.uns.ftn.svtvezbe07.model.entity.User> userToAdd = userService.findById(intv);
+	        
+	        if(group.getGroupAdmin()!=null && group.getGroupAdmin().getId()==intv) {
+	        	group.setGroupAdmin(null);
+	        	userToAdd.get().getGroups().remove(group);
+	        }
+	        else if(group.getAddedGroupAdmins()!=null) {
+	        	for(rs.ac.uns.ftn.svtvezbe07.model.entity.User u:group.getAddedGroupAdmins()) {
+	        		if(u.getId()==intv) {
+	        			group.getAddedGroupAdmins().remove(userToAdd.get());
+	        		}
+	        	}
+	        }     
+	        groupService.save(group);
+	        
+	        List<Group> allGroups = groupService.getAll();
+	        Set<rs.ac.uns.ftn.svtvezbe07.model.entity.User> users=new HashSet<>();
+	        boolean yes=false;
+		     for (Group group2 : allGroups) {
+		         if (group2.getGroupAdmin()!=null && group2.getGroupAdmin().getId() == userToAdd.get().getId()) {
+		             yes=true;
+		         }
+
+		         boolean isUserAddedAdmin = group2.getAddedGroupAdmins().stream()
+		                 .anyMatch(admin -> admin.getId() == userToAdd.get().getId());
+	
+		         if (isUserAddedAdmin) {
+		             users.add(userToAdd.get());
+		         }
+		     }
+		     if(!yes && !users.contains(userToAdd.get()) ) {
+		    	 userToAdd.get().setRole(Roles.USER);
+		     }
+	        
+	        userService.save(userToAdd.get());
+	        if(group.getGroupAdmin()==null && group.getAddedGroupAdmins().isEmpty()) {
+	        	group.setDeleted(true);
+	        	groupService.save(group);
+	        }
+	        logger.info("Izbacen group admin");
+	        return new ResponseEntity<>(group, HttpStatus.OK);
+	    } catch (Exception e) {
+	    	throw new Exception(e.getMessage());
+	        //return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+	    }
+	}
 	
 }

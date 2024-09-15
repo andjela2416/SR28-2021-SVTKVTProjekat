@@ -119,6 +119,7 @@ public class ReactionController {
         if(post==null){
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
+        logger.info("Vracena reakcija");
         return new ResponseEntity<>(post, HttpStatus.OK);
         
 //        rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
@@ -220,7 +221,7 @@ public class ReactionController {
         }
         
         Reaction r=reactionService.findReactionByTimestamp(post.getTimestamp());
-
+        logger.info("Napravljena reakcija");
         return new ResponseEntity<>(r, HttpStatus.CREATED);
     }
 
@@ -262,6 +263,7 @@ public class ReactionController {
 		
 	    r.setDeleted(true);
 	    reactionService.save(r);
+	    logger.info("Obrisana reakcija");
 	    return new ResponseEntity<>(r, HttpStatus.OK);
 	}
                                       

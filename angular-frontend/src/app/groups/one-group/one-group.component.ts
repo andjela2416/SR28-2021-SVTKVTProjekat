@@ -36,8 +36,11 @@ export class OneGroupComponent implements OnInit {
   @Input() isMember:boolean;
   @Input() isAdmin:boolean;
   @Input() isRequestSent:boolean;
+  @Input() isUserBannedInGroup:boolean;
   //isRequestSent: boolean = false;
   editing = false;
+  systemAdmin=false;
+  selectedAdminToRemove: any;
   form: FormGroup
   private ngUnsubscribe: Subject<void> = new Subject<void>();
   notification: DisplayMessage;
@@ -115,11 +118,60 @@ export class OneGroupComponent implements OnInit {
 	if (this.authService.tokenIsPresent()) {
     this.userService.getMyInfo().subscribe(user => {
 		this.currentUser=user.id;
+		if(user.role=='ADMIN'){
+			this.systemAdmin=true;
+		}
     });
     
   }
+  console.log(this.isAdmin,this.isMember);
 
   }
+  
+    suspend(user:number,group:number) {
+  // Nakon što se korisnik suspenduje, možete ažurirati tabelu ili obavestiti korisnika o uspehu ili neuspehu operacije.
+	this.userService.suspend2(user,group).subscribe((rep)=>{	    
+		this.groupService.getOneGroup(group).subscribe((gr=>{
+			this.group=gr;
+			this.cdr.detectChanges();
+		}))
+  });
+}
+
+  addAdmin(user:number,group:number) {
+  // Nakon što se korisnik suspenduje, možete ažurirati tabelu ili obavestiti korisnika o uspehu ili neuspehu operacije.
+	this.userService.addGrAdmin(user,group).subscribe((rep)=>{	    
+		this.groupService.getOneGroup(group).subscribe((gr=>{
+			this.group=gr;
+			this.cdr.detectChanges();
+		}))
+  });
+}
+removeAdmin() {
+  this.userService.removeGrAdmin(this.selectedAdminToRemove, this.group.id).subscribe(() => {
+    this.groupService.getOneGroup(this.group.id).subscribe((gr) => {
+      if (gr == null) {
+        this.group = null;
+        console.log('Grupa je obrisana');
+
+        this.router.navigate(['/profile']);
+      } else {
+        this.group = gr;
+      }
+      this.cdr.detectChanges();
+    }, (error) => {
+      if (error.status === 404) {
+        this.group = null; // Grupa ne postoji
+        console.log('Grupa ne postoji');
+
+        this.router.navigate(['/profile']);
+      } else {
+        console.error('Greška pri dohvatanju grupe:', error);
+      }
+    });
+  });
+}
+
 
 posaljiZahtevZaGrupu() {
   if(this.isRequestSent==false){	

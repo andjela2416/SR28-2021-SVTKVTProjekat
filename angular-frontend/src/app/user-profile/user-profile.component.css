@@ -89,3 +89,62 @@
 .friends-button:hover {
   background-color: #45a049; 
 }
+.container3 {
+  padding-left: 10px;
+  padding-right: 10px;
+  max-width: 400px;
+  margin: 30px auto;
+  text-align:center
+}
+
+.scroll{
+  overflow-y: auto;
+  max-height:300px;
+}
+.profile-header img {
+  width: 150px; 
+  height: 150px; 
+  border-radius: 50%;
+  margin-left:10px;
+  margin-top:10px
+}
+
+table {
+    max-width: 950px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: 8px;
+  }
+  th{
+      font-weight: 100;
+      }
+
+  input, label{
+    margin: 10px;
+  }
+  input{
+    width: 100px;
+  }
+  textarea{
+    width: 300px;
+    height: 100px;
+  }
+ tr{
+ text-align:center
+ }
+  .right-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  text-align: center;
+} 
+ 

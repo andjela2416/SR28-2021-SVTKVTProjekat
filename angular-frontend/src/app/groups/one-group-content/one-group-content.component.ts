@@ -6,6 +6,7 @@ import { UserService } from 'src/app/service/user.service';
 import { FormBuilder, FormGroup,FormControl } from '@angular/forms';
 import { Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-one-group-content',
@@ -16,9 +17,10 @@ export class OneGroupContentComponent implements OnInit {
   groupId: number;
   group: any;
   isMember: boolean;
-	isAdmin: boolean;
+  isAdmin: boolean;
   isRequestSent:boolean;
   currentUser:any;
+  isUserBannedInGroup:boolean;
 
   constructor(
 	private route: ActivatedRoute,
@@ -28,18 +30,23 @@ export class OneGroupContentComponent implements OnInit {
     private userService:UserService,
   ) { }
 
-  ngOnInit() {
-	 if (this.authService.tokenIsPresent()) {
-		this.userService.getMyInfo().subscribe(user => {
-		this.currentUser=user.id;
-    });
-      this.route.params.subscribe(params => {
+
+ngOnInit() {
+  if (this.authService.tokenIsPresent()) {
+    this.route.params.pipe(
+      switchMap(params => {
         this.groupId = params['id'];
-        this.getGroup();
-        this.checkIfRequestSent();
-      });
-    } 
+        return this.userService.getMyInfo();
+      })
+    ).subscribe(user => {
+      this.currentUser = user.id;
+      this.getGroup();
+      this.checkIfBanned();
+      this.checkIfRequestSent();
+    });
   }
+}
+
 	
 
   getGroup(){
@@ -47,9 +54,17 @@ export class OneGroupContentComponent implements OnInit {
     this.group= group;
     console.log(group)
     this.isMember = group.members.some((member) => member.id === this.currentUser);
-    this.isAdmin = group.groupAdmin.id === this.currentUser;
-    console.log(this.isMember,this.isAdmin)
+    this.isAdmin =(group.groupAdmin && group.groupAdmin.id === this.currentUser) || group.addedGroupAdmins.some((admin) => admin.id === this.currentUser);
+    console.log(this.isMember,this.isAdmin,this.currentUser)
     })
+  }
+      checkIfBanned() {
+    this.groupService.checkIfBanned(this.groupId).subscribe((res) => {
+      console.log(res);
+     	this.isUserBannedInGroup=res;  
+     	console.log(this.isUserBannedInGroup);	
+    });
+   
   }
   
     checkIfRequestSent() {

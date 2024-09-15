@@ -28,6 +28,13 @@ export class GroupService {
      getAllForUser2() {
     return this.apiService.get(this.config.groupsForUser2_url);
   }
+       getAllForUser22(userId) {
+    return this.apiService.get(this.config.groupsForUser2_url+"/profil/"+userId);
+  }
+       getAllGroupsUsers(id) {
+    return this.apiService.get(this.config.userGroupsAll+id+"/users");
+  }
+  
      getAllForUser3() {
     return this.apiService.get(this.config.groupsForUser3_url);
   }
@@ -39,6 +46,10 @@ export class GroupService {
 	};
 	console.log(body);
     return this.apiService.post(this.config.getOneGroup2_url+'/groupRequests/all/'+id);
+  }
+  
+   checkIfBanned(id) {
+    return this.apiService.get(this.config.getOneGroup2_url+'/isBanned/'+id);
   }
   
     deleteGroupRequest(id){
@@ -240,7 +251,15 @@ sort2(sort) {
 
   return this.apiService.get("http://localhost:8080/api/posts/all/sorted?sort="+sort.sort);
 }
+ suspendGr(values:any) {
+	const body = {
+  		'id': values.group,
+  		'suspendedReason': values.suspendedReason
+	};
+;
+    return this.apiService.delete(this.config.susGr, JSON.stringify(body))
 
+  }
 
  create(values:any) {
     const loginHeaders = new HttpHeaders({

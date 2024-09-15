@@ -7,6 +7,7 @@ import { UserService } from 'src/app/service/user.service';
 import { ChangeDetectionStrategy } from '@angular/core';
 import { ChangeDetectorRef } from '@angular/core';
 import { AllPostListComponent } from '../allPost-list/allPost-list.component';
+import { HttpClient, HttpEventType } from '@angular/common/http';
 
 @Component({
   selector: 'app-comment-list',
@@ -34,11 +35,17 @@ export class CommentListComponent {
   "SELF_HARM_OR_SUICIDE",
   "OTHER"
 ];
+retrievedImage: any;
+base64Data: any;
+  retrieveResonse: any;
+  message: string;
+  imageName: any;
+  userImageCache: Map<string, string> = new Map<string, string>();
 
   constructor(private authService: AuthService, private comService: ComService,
   private cdr: ChangeDetectorRef,private formBuilder: FormBuilder,
   private allPostListComponent: AllPostListComponent,private userService:UserService,
-  private postService:PostService
+  private postService:PostService,private httpClient: HttpClient
   ) {
 	this.editCommentForm3 = this.formBuilder.group({
             text: ['', Validators.required],
@@ -63,10 +70,20 @@ export class CommentListComponent {
    	postDropdownStatus: { [postId: number]: { open: boolean, type: string } } = {};
 	commentDropdownStatus: { [commentId: number]: { open: boolean, type: string } } = {};
 	ngOnInit() {
-		
 	
 	    for (const comment of this.comments) {
 	      this.replyFormControls[this.replyFormControlName(comment.id)] = new FormControl('');
+	      if(comment.userId.profilePhotoUpload){		
+				console.log("ppozv");
+				this.retrievedImage2(comment.userId);
+			}
+	    	for(const p of comment.repliesComment){
+			if(p.userId.profilePhotoUpload){		
+				console.log("ppozv");
+				this.retrievedImage2(p.userId);
+			}
+			
+		}
 	    }
 		this.selectedPostForEditing3=this.parentPost;
 	
@@ -92,6 +109,18 @@ export class CommentListComponent {
 	   
 	    });
 	  }
+	  
+	    retrievedImage1(user: any) {
+		  //Make a call to Spring Boot to get the Image Bytes.
+		  this.httpClient.get('http://localhost:8080/api/users/get/' + user.profilePhotoUpload.imagePath+"/"+user.profilePhotoUpload.id)
+		    .subscribe(
+		      res => {
+		        this.retrieveResonse = res;
+		        this.base64Data = this.retrieveResonse.picByte;
+		        return 'data:image/jpeg;base64,' + this.base64Data;
+		      }
+		    );
+		}
 	  
 	  kreirajReakciju2(tipReakcije: string, postId: number, commentId: number) {
 
@@ -123,7 +152,25 @@ export class CommentListComponent {
 	toggleReportMenu2(): void {
 	  this.isReportMenuOpen2 = !this.isReportMenuOpen2;
 	}
-	
+	retrievedImage2(user: any) {
+  if (this.userImageCache.has(user.id)) {
+	console.log(user.profilePhotoUpload);
+    return this.userImageCache.get(user.id);
+  } else {
+	console.log(user.profilePhotoUpload);
+    this.httpClient.get('http://localhost:8080/api/users/get/' + user.profilePhotoUpload.imagePath+"/"+user.profilePhotoUpload.id)
+      .subscribe(
+        res => {
+          this.retrieveResonse = res;
+          this.base64Data = this.retrieveResonse.picByte;
+          const imageUrl = 'data:image/jpeg;base64,' + this.base64Data;
+          this.userImageCache.set(user.id, imageUrl);
+          this.cdr.detectChanges();
+          return imageUrl;
+        }
+      );
+  }
+}
 	/*  
 	toggleCommentDropdown2(commentId: number) {
 	  for (const id in this.commentDropdownStatus) {

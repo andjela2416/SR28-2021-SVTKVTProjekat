@@ -8,6 +8,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -33,26 +34,71 @@ public class Image {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name="id")
 	private Long id;	
 	
-	@Column
-	private String path;
+	@Column(name = "image_path")
+	private String imagePath;
+	
+//	@Column(name = "name")
+//	private String name;
+
+	@Column(name = "type")
+	private String type;
+
+    //image bytes can have large lengths so we specify a value
+    //which is more than the default length for picByte column
+	@Column(name = "picByte", length = 10000000)
+	private byte[] picByte;
 	
 	
-	public String getPath() {
-		return path;
+
+
+//	public String getName() {
+//		return name;
+//	}
+//
+//
+//	public void setName(String name) {
+//		this.name = name;
+//	}
+
+
+	public String getImagePath() {
+		return imagePath;
 	}
 
 
-	public void setPath(String path) {
-		this.path = path;
+	public void setImagePath(String imagePath) {
+		this.imagePath = imagePath;
 	}
 	
-	@OnDelete(action = OnDeleteAction.CASCADE) 
-	@JsonIgnoreProperties({"content","creationDate","images","postedBy"})
-	@JoinColumn(name="post_id")
-	@ManyToOne(fetch = FetchType.EAGER)
-	private Post post;
+
+	public String getType() {
+		return type;
+	}
+
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+
+	public byte[] getPicByte() {
+		return picByte;
+	}
+
+
+	public void setPicByte(byte[] picByte) {
+		this.picByte = picByte;
+	}
+
+
+//	@OnDelete(action = OnDeleteAction.CASCADE) 
+//	@JsonIgnoreProperties({"content","creationDate","images","postedBy"})
+//	@JoinColumn(name="post_id")
+//	@ManyToOne(fetch = FetchType.EAGER)
+//	private Post post;
 	    
 	@JsonIgnoreProperties({"username","friends", "lastName", "firstName","description","password","displayName","lastLogin","role","email"})
 	@OneToOne(fetch = FetchType.LAZY)
@@ -71,14 +117,14 @@ public class Image {
 	}
 
 
-	public Post getPost() {
-		return post;
-	}
-
-
-	public void setPost(Post post) {
-		this.post = post;
-	}
+//	public Post getPost() {
+//		return post;
+//	}
+//
+//
+//	public void setPost(Post post) {
+//		this.post = post;
+//	}
 
 
 	public User getUser() {
@@ -89,7 +135,50 @@ public class Image {
 	public void setUser(User user) {
 		this.user = user;
 	}	
-	
+	public Image() {
+		super();
+	}
+
+//	public Image(String name, String type, byte[] picByte) {
+//		this.name = name;
+//		this.type = type;
+//		this.picByte = picByte;
+//	}
+	public Image(String path, String type, byte[] picByte) {
+		this.imagePath = path;
+		this.type = type;
+		this.picByte = picByte;
+	}
+
+//	public Image(String path,/* String name,*/ String type, byte[] picByte, Post post, User user) {
+//		super();
+//		this.imagePath = path;
+//		/*this.name = name;*/
+//		this.type = type;
+//		this.picByte = picByte;
+//		//this.post = post;
+//		this.user = user;
+//	}
+
+
+	public Image(String path, String type, byte[] picByte, User user) {
+		super();
+		this.imagePath = path;
+		this.type = type;
+		this.picByte = picByte;
+		this.user = user;
+	}
+
+
+//	public Image(String path, String type, byte[] picByte) {
+//		super();
+//		this.imagePath = path;
+//		this.type = type;
+//		this.picByte = picByte;
+//	//	this.post = post;
+//	}
+
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {

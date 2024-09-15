@@ -47,6 +47,11 @@ public class FriendRequestServiceImpl implements FriendRequestService{
 	public List<FriendRequest> findAllByToWho(User g) {
 	    return FriendRequestRepository.findAllByToWho(g);
 	}
+	
+	@Override
+	public List<FriendRequest> findAllByFromWho(User g) {
+	    return FriendRequestRepository.findAllByFromWho(g);
+	}
 
 
 	

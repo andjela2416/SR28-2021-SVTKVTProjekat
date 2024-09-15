@@ -115,7 +115,6 @@ public class GroupServiceImpl implements GroupService {
         if (groupOptional!=null) {
         	groupOptional.setSuspended(true);
         	groupOptional.setSuspendedReason(g.getSuspendedReason());
-        	logger.info("LOLA2"+groupOptional.getSuspendedReason());
             Group updatedGroup = groupRepository.save(groupOptional);
             return updatedGroup;
         }

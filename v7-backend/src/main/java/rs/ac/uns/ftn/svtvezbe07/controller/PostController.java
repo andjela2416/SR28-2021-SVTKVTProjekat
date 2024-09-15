@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 
 import javax.transaction.Transactional;
@@ -77,10 +79,9 @@ public class PostController {
 
 
 	    @GetMapping("/all")
-	    //@PreAuthorize("hasRole('ADMIN')")
+	    @PreAuthorize("hasRole('ADMIN')")
 	    public ResponseEntity<List<Post>> getAll(){
 	    	List<Post> l=postService.getAll();
-	    	List<Reaction> r=reactionService.getAll();
 	    	List<Post> list=new ArrayList<Post>();
 	    	for (Post g:l) {
 //	    		for (Reaction reaction : r) {
@@ -94,6 +95,14 @@ public class PostController {
 	    			list.add(g);
 	    		}
 	    	}
+	    	Random random = new Random();
+	         for (int i = list.size() - 1; i > 0; i--) {
+	             int j = random.nextInt(i + 1);
+	             Post temp = list.get(i);
+	             list.set(i, list.get(j));
+	             list.set(j, temp);
+	         }
+	         logger.info("Vracena lista postova");
 	        return new ResponseEntity<>(list, HttpStatus.OK);
 	    }
 	    
@@ -121,6 +130,28 @@ public class PostController {
 	      	    			list.add(g);
 	      	    		}
 	      	    	}
+	      	    	logger.info("Vracena lista postova usera");
+	    	        return new ResponseEntity<>(list, HttpStatus.OK);
+	    	    } else {
+	    	        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+	    	    }
+	    }
+	    
+	    @GetMapping("/all/user/{userId}")
+	    //@PreAuthorize("hasRole('USER')")
+	    //@CrossOrigin(origins = "http://localhost:4200")
+	    public ResponseEntity<List<Post>> getAllUsers2(@PathVariable Integer userId){
+
+	    Optional<rs.ac.uns.ftn.svtvezbe07.model.entity.User> currentUser = userService.findById(userId);
+	    	    if (currentUser != null) {
+	    	    	List<Post> Groups = postService.findAllByUserId(currentUser.get());
+	      	        List<Post> list=new ArrayList<Post>();
+	      	    	for (Post g:Groups) {
+	      	    		if ( !g.isDeleted()) {
+	      	    			list.add(g);
+	      	    		}
+	      	    	}
+	      	    	logger.info("Vracena lista postova");
 	    	        return new ResponseEntity<>(list, HttpStatus.OK);
 	    	    } else {
 	    	        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
@@ -153,7 +184,7 @@ public class PostController {
 	    		  
 	    	  }
 	      }
-	      
+	      logger.info("Vracena lista sortiranih postova");
 	      return new ResponseEntity<>(l, HttpStatus.OK);
 	  }
 
@@ -167,6 +198,7 @@ public class PostController {
 	       Post post = postService.findPost(id);
 	       if(post!=null ){
 	        	if(!post.isDeleted()) {
+	        	logger.info("Vracen post");
 	            return new ResponseEntity<>(post, HttpStatus.OK);}
 	        }
 	        return new ResponseEntity<>(null, HttpStatus.OK);
@@ -211,21 +243,6 @@ public class PostController {
 		        rs.ac.uns.ftn.svtvezbe07.model.entity.User user= userService.findByUsername(u.getUsername());
 		        post.setContent(newPost.getContent());
 		        post.setCreationDate(LocalDateTime.now());
-		        if (!newPost.getImages().isEmpty()) {
-		            Set<Image> images = new HashSet<>();
-		            for (Image imageDTO : newPost.getImages()) {
-		             
-		                    Image image = new Image();
-		                    image.setPath(imageDTO.getPath());
-		                    image.setPost(post);
-		                    image.setUser(post.getPostedBy());
-		                    if (!image.getPath().equals("")) {
-		                        images.add(image);
-		                    }
-		                
-		            }
-		            post.setImages(images); // Dodajemo nove slike
-		        }
 		        post.setDeleted(false);
 		        post.setLikes(0);
 		        post.setDislikes(0);
@@ -266,11 +283,8 @@ public class PostController {
 	            return new ResponseEntity<>(null, HttpStatus.NOT_ACCEPTABLE);
 	        }
 
-        Post p=postService.findPostByContent(post.getContent());
-        for (Image i:p.getImages()) {
-	    	logger.info("id slika kad se kreira post"+i.getId());
-	    }
-
+        Post p=postService.findPost(post.getId());
+        logger.info("Kreiran post");
 	        return new ResponseEntity<>(p, HttpStatus.CREATED);
 	    }
 	
@@ -297,7 +311,7 @@ public class PostController {
 //		        imageRepository.deleteById(image.getId());
 		        //deleteImage(image.getId());
 //		        counter++;
-		    	image.setPost(null); 
+		    	//image.setPost(null); 
 		        imageRepository.save(image);
 		    }
 		    for (Comment c:comments) {
@@ -312,14 +326,17 @@ public class PostController {
 		    }
 		    //Group g = groupService.findGroupById(post.getGroup().getId());
 		    
-
-			postService.delete(id);
+		    post.setDeleted(true);
+			postService.save(post);
+			logger.info("Obrisan post");
 		    return new ResponseEntity<>(new Post(), HttpStatus.OK);
 		}
 		@PostMapping("/createInGroup")
-		public ResponseEntity<Post> createPostInGroup(@Validated @RequestBody PostDTO postDTO) {
+		public ResponseEntity<Post> createPostInGroup(@RequestBody Post postDTO) {
+			logger.info(postDTO.getGroup().getId());
 		    rs.ac.uns.ftn.svtvezbe07.model.entity.User currentUser = userController.user(SecurityContextHolder.getContext().getAuthentication());
 		    if (currentUser != null) {
+		    	logger.info(postDTO.getGroup());
 		        Group group = groupService.findGroup(postDTO.getGroup().getId());
 		        if (group != null) {
 		            Post post = new Post();
@@ -328,21 +345,6 @@ public class PostController {
 		            post.setContent(postDTO.getContent());
 		            post.setCreationDate(LocalDateTime.now());
 		            post.setDeleted(false);
-		            if (!postDTO.getImages().isEmpty()) {
-			            Set<Image> images = new HashSet<>();
-			            for (Image imageDTO : postDTO.getImages()) {
-			             
-			                    Image image = new Image();
-			                    image.setPath(imageDTO.getPath());
-			                    image.setPost(post);
-			                    image.setUser(currentUser);
-			                    if (!image.getPath().equals("")) {
-			                        images.add(image);
-			                    }
-			                
-			            }
-			            post.setImages(images); // Dodajemo nove slike
-			        }
 		            post.setLikes(0);
 			        post.setDislikes(0);
 			        post.setHearts(0);
@@ -354,6 +356,7 @@ public class PostController {
 		            group.getPosts().add(post);
 		            groupService.save(group);
 		            Post p = postService.findPost(post.getId());
+		            logger.info("Napravljen post u grupi");
 		            return new ResponseEntity<>(p, HttpStatus.CREATED);
 		        } else {
 		            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -414,9 +417,9 @@ public class PostController {
 		public int countLikes(Set<Reaction> reactions) {
 		    int count = 0;
 		    for (Reaction reaction : reactions) {
-		    	logger.info(reaction.getType());
+		    	
 		        if (reaction.getType().equals(ReactionType.LIKE)) {
-		        	logger.info("lolana");
+		        	
 		            count++;
 		        }
 		    }
@@ -448,44 +451,14 @@ public class PostController {
 		@CrossOrigin(origins = "http://4200")
 		@PreAuthorize("hasAnyRole('USER', 'ADMIN','GROUPADMIN')")
 		public ResponseEntity<Post> edit(@RequestBody PostDTO editPost) throws Exception {
-		    logger.info("ddd"+editPost.getContent(), editPost.getImages(), editPost.getId());
-		    
 		        Post edit = postService.findPost(editPost.getId());
-		        if(edit==null) {
-		        	throw new Exception("d");
-		        }
-		        logger.info(edit.getContent(), edit.getImages(), edit.getId());
+		       
 		        edit.setContent(editPost.getContent());
-//		        for (Image i:edit.getImages()) {
-//		        	deleteImage(i.getId());
-//		        }
-//		        edit.getImages().clear(); 
-
-		        if (!editPost.getImages().isEmpty()) {
-		            Set<Image> images = new HashSet<>();
-		            for (Image imageDTO : editPost.getImages()) {
-		             
-		                    Image image = new Image();
-		                    image.setPath(imageDTO.getPath());
-		                    image.setPost(edit);
-		                    image.setUser(edit.getPostedBy());
-		                    if (!image.getPath().equals("")) {
-		                        images.add(image);
-		                    }
-		                
-		            }
-		            edit.setImages(images);
-		        }
-
-		        edit.setDeleted(false);
-		        logger.info("edit: " + edit.getContent() + edit.getImages());
+		        
 		        postService.save(edit);
-
-
-		        Post p=postService.findPostByContent(edit.getContent());
-		        for (Image i:p.getImages()) {
-			    	logger.info("slike editovanog posta"+i.getId());
-			    }	        return new ResponseEntity<>(p, HttpStatus.OK);
+		        Post p=postService.findPost(edit.getId());
+		        logger.info("Vracen editovan post");
+		        return new ResponseEntity<>(p, HttpStatus.OK);
 		   
 		}
 		

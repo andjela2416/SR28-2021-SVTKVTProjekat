@@ -24,4 +24,6 @@ public interface FriendRequestService {
 //    List<FriendRequest> findAllByUser(User user) ;
     
     List<FriendRequest> findAllByToWho(User user) ;
+    
+    List<FriendRequest> findAllByFromWho(User user) ;
 }

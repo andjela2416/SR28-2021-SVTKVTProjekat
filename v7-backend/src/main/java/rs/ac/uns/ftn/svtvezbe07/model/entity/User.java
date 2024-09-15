@@ -51,6 +51,10 @@ public class User {
 	@Column(name = "profile_photo")
 	private String profilePhoto;
 	
+	@OneToOne
+	@JoinColumn(name = "profile_photo_upload")
+	private Image profilePhotoUpload;
+	
 	public String getProfilePhoto() {
 		return profilePhoto;
 	}
@@ -58,6 +62,17 @@ public class User {
 	public void setProfilePhoto(String profilePhoto) {
 		this.profilePhoto = profilePhoto;
 	}
+	
+
+	public Image getProfilePhotoUpload() {
+		return profilePhotoUpload;
+	}
+
+	public void setProfilePhotoUpload(Image profilePhotoUpload) {
+		this.profilePhotoUpload = profilePhotoUpload;
+	}
+
+
 
 	@Column(name = "displayName")
 	private String displayName;
@@ -71,7 +86,7 @@ public class User {
 	
 	//@OneToMany(fetch = FetchType.EAGER)
 	//private Set<User> friendList = new HashSet<User>();
-	@JsonIgnoreProperties({"hibernateLazyInitializer","handler","friends"})
+	@JsonIgnoreProperties({"hibernateLazyInitializer","handler","friends","groups"})
 	@ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "user_friends",

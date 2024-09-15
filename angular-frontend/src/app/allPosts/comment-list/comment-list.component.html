@@ -7,7 +7,8 @@
           <td >
             <div class="comment" >
               <div>
-                <img class="user-avatar" [src]="comment.userId.profilePhoto" alt="User Avatar">
+                <img *ngIf="comment.userId.profilePhoto" class="user-avatar" [src]="comment.userId.profilePhoto" alt="User Avatar">
+                <img *ngIf="comment.userId.profilePhotoUpload && retrievedImage2(comment.userId)" class="user-avatar" [src]="retrievedImage2(comment.userId)" alt="Profile Photo"> 
               </div>
               <div class="comment-time" style="overflow-wrap:break-word;width:215px">
                 <span class="username">{{ comment.userId.displayName }}:</span>
@@ -62,7 +63,8 @@
                 <div *ngIf="!reply.deleted">
                 <div class="comment" >
                   <div>
-                    <img class="user-avatar" [src]="reply.userId.profilePhoto" alt="User Avatar">
+                    <img *ngIf="reply.userId.profilePhoto" class="user-avatar" [src]="reply.userId.profilePhoto" alt="User Avatar">
+                    <img *ngIf="reply.userId.profilePhotoUpload && retrievedImage2(reply.userId)" class="user-avatar" [src]="retrievedImage2(reply.userId)" alt="Profile Photo"> 
                   </div>
                   <div class="comment-time" style="overflow-wrap:break-word;width:215px">
                     <span class="username">{{ reply.userId.displayName }}:</span>

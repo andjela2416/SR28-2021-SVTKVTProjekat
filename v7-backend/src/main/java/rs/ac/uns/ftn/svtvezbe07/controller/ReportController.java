@@ -1,5 +1,7 @@
 package rs.ac.uns.ftn.svtvezbe07.controller;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +26,8 @@ import java.util.Set;
 public class ReportController {
 
     private final ReportService reportService;
+   
+	private static final Logger logger = LogManager.getLogger(Log4jExample.class); 
 
     @Autowired
     public ReportController(ReportService reportService) {
@@ -40,6 +44,7 @@ public class ReportController {
     public ResponseEntity<Report> getReportById(@PathVariable Long id) {
         Report report = reportService.findReport(id);
         if (report != null) {
+        	logger.info("Vracen report po ID-u");
             return ResponseEntity.ok(report);
         } else {
             return ResponseEntity.notFound().build();
@@ -49,6 +54,7 @@ public class ReportController {
     @PostMapping
     public ResponseEntity<Report> createReport(@RequestBody ReportDTO report) {
         Report createdReport = reportService.createReport(report);
+        logger.info("Napravljen report");
         return ResponseEntity.status(HttpStatus.CREATED).body(createdReport);
     }
 
@@ -59,17 +65,14 @@ public class ReportController {
 	  
 
 	        Report edit = reportService.findReport(editPost.getId());
-	        if(edit==null) {
-	        	throw new Exception("d");
-	        }
 
 	        edit.setAccepted(editPost.getAccepted());
 
 	        reportService.save(edit);
 
-
 	        Report p=reportService.findReport(edit.getId());
 
+	        logger.info("Prihvacen ili odbijen report");
         return new ResponseEntity<>(p, HttpStatus.OK);
 	
 	}

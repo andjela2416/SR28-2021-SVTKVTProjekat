@@ -18,4 +18,5 @@ public interface FriendRequestRepository extends JpaRepository<FriendRequest, Lo
 //	   List<Reaction> findAllByUser(User user);
 	   void deleteById(Long id);
 	   List<FriendRequest> findAllByToWho(User g);
+	   List<FriendRequest> findAllByFromWho(User g);
 }

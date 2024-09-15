@@ -40,7 +40,7 @@ export class GroupRequestsComponent implements OnInit {
   getGroupRequests() {
     this.groupService.getGroupsRequests().subscribe((requests) => {
 	   console.log(requests);
-       this.groupRequests = requests.filter((request) => request.group.groupAdmin.id === this.currentUser);
+       this.groupRequests = requests.filter((request) => (request.group.groupAdmin && request.group.groupAdmin.id === this.currentUser) || request.group.addedGroupAdmins.some(admin => admin.id === this.currentUser));
        this.cdr.detectChanges();
     });
   }

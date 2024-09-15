@@ -13,6 +13,11 @@ export class ConfigService {
   get usersa_url(): string {
     return this._usersa_url;
   }
+     private _uploadPhoto_url = this._api_url+"/users/upload";
+	
+  get uploadPhoto_url(): string {
+    return this._uploadPhoto_url;
+  }
   
     private _jedan = this._api_url+"/users/all";
 	
@@ -24,10 +29,22 @@ export class ConfigService {
   get tri(): string {
     return this._tri;
   }
+          private _userGroupsAll = this._api_url+"/groups/all/";
+	
+  get userGroupsAll(): string {
+    return this._userGroupsAll;
+  }
+  
           private _nula = this._api_url+"/groups";
 	
   get nula(): string {
     return this._nula;
+  }
+  
+            private _susGr = this._api_url+"/groups/suspend";
+	
+  get susGr(): string {
+    return this._susGr;
   }
             private _nula2 = this._api_url+"/groups/gru";
 	
@@ -45,6 +62,12 @@ export class ConfigService {
 	
   get sedam(): string {
     return this._sedam;
+  }
+  
+        private _postUserId = this._api_url+"/posts/all/user/";
+	
+  get postUserId(): string {
+    return this._postUserId;
   }
   
       private _osam =this._api_url+"/posts/all";
@@ -279,6 +302,13 @@ export class ConfigService {
   get banns_url(): string {
     return this._banns_url;
   }
+  
+            private _banns2_url = this._api_url + "/groups/banns2";
+	
+  get banns2_url(): string {
+    return this._banns2_url;
+  }
+  
   
         private _reports_url = this._api_url + "/groups/reports";
 	

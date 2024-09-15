@@ -20,7 +20,6 @@ import rs.ac.uns.ftn.svtvezbe07.model.entity.User;
 public class ImageDTO {
 	private Long id;	
 	private String path;
-	private Post post;
 	private User user;
 	public Long getId() {
 		return id;
@@ -34,12 +33,6 @@ public class ImageDTO {
 	public void setPath(String path) {
 		this.path = path;
 	}
-	public Post getPost() {
-		return post;
-	}
-	public void setPost(Post post) {
-		this.post = post;
-	}
 	public User getUser() {
 		return user;
 	}
@@ -50,13 +43,12 @@ public class ImageDTO {
 		
 	}
 	public ImageDTO(Image image) {
-		this(image.getId(),image.getPath(),image.getPost(),image.getUser());
+		this(image.getId(),image.getImagePath(),image.getUser());
 	}
-	public ImageDTO(Long id, String path, Post post, User user) {
+	public ImageDTO(Long id, String path, User user) {
 		super();
 		this.id = id;
 		this.path = path;
-		this.post = post;
 		this.user = user;
 	}
 	

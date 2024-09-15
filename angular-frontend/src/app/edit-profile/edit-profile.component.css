@@ -1,7 +1,81 @@
 .edit-profile {
-  max-width: 400px;
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin:0 auto;
+  max-width:400px;
 }
+
+.profile-photo {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.profile-photo label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.profile-photo img {
+  margin-top:10px;
+  width: 150px; 
+  height: 150px; 
+  border-radius: 50%;
+}
+
+.profile-photo label span {
+  background-color: #769cb5;
+  color: #fff; 
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  margin-top: 5px;
+  cursor: pointer;
+}
+
+.profile-photo input[type="file"] {
+  display: none;
+}
+
+/*
+.edit-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin:0 auto;
+  max-width:400px;
+}
+
+.profile-photo {
+  position: relative;
+  display: inline-block;
+}
+
+.profile-photo img {
+  width: 150px; 
+  height: 150px; 
+  border-radius: 50%;
+}*/
+
+.profile-photo button {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #3498db; /* Boja dugmeta */
+  color: #fff; /* Boja teksta dugmeta */
+  padding: 5px 10px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
 
 h2 {
   font-size: 24px;
@@ -55,7 +129,7 @@ button:hover {
 
 .scroll{
   overflow-y: auto;
-  max-height:200px;
+  max-height:300px;
 }
 table {
     max-width: 950px;
@@ -74,3 +148,7 @@ table, th, td {
   th{
       font-weight: 100;
       }
+      
+ tr{
+ text-align:center
+ }      

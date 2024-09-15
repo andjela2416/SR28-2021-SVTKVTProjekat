@@ -1,28 +1,98 @@
-<div *ngIf="!grupa" class="centered-container">
-	<form [formGroup]="forma" (ngSubmit)="onSubmitPostavi()">
-	<div class="container2">
-  	<textarea class="t" type="text" formControlName="post" placeholder="Text" name="post" required></textarea>
-  	<br>
-  	<textarea class="t" type="text" formControlName="pathSlike" placeholder="Image path"  name="pathSlike" required></textarea> 
-  	<br>
-  	<button class="dugmePostavi" type="submit">Post</button>
-  	<br>
+ 
+<div *ngIf="!grupa && !profile"  class="container">
+<form [formGroup]="forma" (ngSubmit)="saveChanges()">
+<table>
+  <thead></thead>
+  <tbody >
+    <tr class="post-row">
+        <td class="s" >
+        	<div style="display: flex;align-items: center;position: relative;">
+        	<div  style="width: 376px">
+            <div class="post-content" style="overflow-wrap:break-word;width:300px">
+                  	<textarea class="t" type="text" formControlName="post" placeholder="Text" name="post" required></textarea>
+            </div>
+            </div>
 	</div>
-	</form>
-	</div>
+	</td>
+	</tr>
+	<tr class="post-row" >
+        <td >
+          	<br>
+     <div class="profile-photo" >
+    <label for="profilePhoto">
+      <span>Upload photo</span>
+    </label>
+    <input type="file" id="profilePhoto" accept="image/*" (change)="handleFileInput($event)" multiple>
+  </div>
+    <br>
+    <div class="slika-container">
+          <ng-container *ngFor="let imagePath of imagePathss; let i = index">
+           <div class="slika-wrapper">
+            <img class="slika" [src]="imagePath" alt="Slika">
+            <button (click)="removeImage(i)" class="delete-button">&#10006;</button>
+            </div>
+          </ng-container>
+        </div>
+        </td>
+      </tr>
+      <tr><td>	<button class="dugmePostavi" type="submit">Post</button>
+      </td>
+      </tr>
+	</tbody></table></form></div>
 	
-<div *ngIf="grupa" class="centered-container">
+<!--  <div *ngIf="grupa && !profile" class="centered-container">
 	<form [formGroup]="forma2" (ngSubmit)="onSubmitPostavi2()">
 	<div class="container2">
   	<textarea class="t" type="text" formControlName="post" placeholder="Text" name="post" required></textarea>
   	<br>
-  	<textarea class="t" type="text" formControlName="pathSlike" placeholder="Image path"  name="pathSlike" required></textarea> 
-  	<br>
+      <input class="t" type="file" (change)="handleFileInput2($event)" accept="image/*" multiple>
+    <br>
   	<button class="dugmePostavi" type="submit">Post in group</button>
   	<br>
 	</div>
 	</form>
+	</div>-->
+ 
+<div *ngIf="grupa && !profile"  class="centered-container">
+<form [formGroup]="forma2" (ngSubmit)="saveChanges2()">
+<table>
+  <thead></thead>
+  <tbody >
+    <tr class="post-row">
+        <td class="s" >
+        	<div style="display: flex;align-items: center;position: relative;">
+        	<div  style="width: 376px">
+            <div class="post-content" style="overflow-wrap:break-word;width:300px">
+                  	<textarea class="t" type="text" formControlName="post" placeholder="Text" name="post" required></textarea>
+            </div>
+            </div>
 	</div>
+	</td>
+	</tr>
+	<tr class="post-row" >
+        <td >
+          	<br>
+     <div class="profile-photo" >
+    <label for="profilePhoto2">
+      <span>Upload photo</span>
+    </label>
+    <input type="file" id="profilePhoto2" accept="image/*" (change)="handleFileInput2($event)" multiple>
+  </div>
+    <br>
+    <div class="slika-container">
+          <ng-container *ngFor="let imagePath of imagePathss2; let i = index">
+           <div class="slika-wrapper">
+            <img class="slika" [src]="imagePath" alt="Slika">
+            <button (click)="removeImage2(i)" class="delete-button">&#10006;</button>
+            </div>
+          </ng-container>
+        </div>
+        </td>
+      </tr>
+      <tr><td>	<button class="dugmePostavi" type="submit">Post in group</button>
+      </td>
+      </tr>
+	</tbody></table></form></div>
 	
 <!--  	 <button class="dugme" style="margin-bottom:10px" (click)="praviGrupu()">Napravi grupu</button>
  <div *ngIf="createGroup" class="centered-container">
@@ -39,7 +109,7 @@
 </form></div> 
 -->
 	
-<div>
+<div *ngIf="posts && posts.length > 0">
   <label for="sortSelect" style="font-size:14px">Sort posts:</label>
   <select id="sortSelect" (change)="sortPosts($event.target.value)">
    	<option disabled selected>Select</option>
@@ -59,13 +129,21 @@
         	<div  style="width: 376px">
             <div class="user-info">
                 <div class="avatar-container">
-                    <img class="user-avatar1" [src]="post.postedBy.profilePhoto" alt="User Avatar">
+                    <img *ngIf="post.postedBy.profilePhoto" class="user-avatar1" [src]="post.postedBy.profilePhoto" alt="User Avatar">
+		<!--		<img *ngIf="post.postedBy.profilePhotoUpload" [src]="retrievedImage(post.postedBy)" alt="Profile Photo">  -->
+                	<img *ngIf="post.postedBy.profilePhotoUpload && retrievedImage2(post.postedBy)" class="user-avatar1" [src]="retrievedImage2(post.postedBy)" alt="Profile Photo">               	
                 </div>
                 <div class="comment-time">
 	                <span class="username1">
 	                <a [routerLink]="['/profile', post.postedBy.id]">{{ post.postedBy.displayName }}</a>
 	                </span>
 		            <p style="color: #888;margin:0px"> {{ formatTimestamp(post.creationDate) }}</p>
+            	</div>
+            	<div *ngIf="post.group" style="margin-left:40px">
+            		<p style="margin:0px;font-size:12px"> Posted in group:</p>
+            		<span style="font-size:13px" >
+	                <a [routerLink]="['/group', post.group.id]">{{ post.group.name }}</a>
+	                </span>
             	</div>
             </div>
             <div class="post-content" style="overflow-wrap:break-word;width:300px">
@@ -98,9 +176,22 @@
     </tr>
       <tr class="post-row" >
         <td >
-          <ng-container *ngFor="let imagePath of getImagesSize2(post)">
-            <img class="s" [src]="imagePath" alt="Slika">
-          </ng-container>
+
+		<div class="slika-container">
+		  <ng-container *ngFor="let imageUrl of postImageCache.get(post.id); let i = index">
+		    <div class="slika-wrapper">
+		      <ng-container *ngIf="imageUrl.includes('data:image/jpeg;base64,')">
+		        <!-- Slika sa picByte atributom -->
+		        <img class="slika" [src]="imageUrl" alt="Image">
+		      </ng-container>
+		      <ng-container *ngIf="!imageUrl.includes('data:image/jpeg;base64,')">
+		        <!-- Slika bez picByte atributa -->
+		        <img class="slika" [src]="imageUrl" alt="Image">
+		      </ng-container>
+		    </div>
+		  </ng-container>
+		</div>
+		        
         </td>
       </tr>
 	<tr class="comment-row1">
@@ -139,7 +230,8 @@
             <div *ngIf="!comment.deleted">
                 <div class="comment" >
                     <div style="margin-left:15px">
-                        <img class="user-avatar" [src]="comment.userId.profilePhoto" alt="User Avatar">
+                        <img *ngIf="comment.userId.profilePhoto" class="user-avatar" [src]="comment.userId.profilePhoto" alt="User Avatar">
+                        <img *ngIf="comment.userId.profilePhotoUpload && retrievedImage2(comment.userId)" class="user-avatar1" [src]="retrievedImage2(comment.userId)" alt="Profile Photo">               
                     </div>
                     <div class="comment-time" style="overflow-wrap:break-word;width:300px">
                         <span class="username">
@@ -200,7 +292,8 @@
                         <div *ngIf="!reply.deleted">
                         <div class="comment" >
                             <div>
-                                <img class="user-avatar" [src]="reply.userId.profilePhoto" alt="User Avatar">
+                                <img *ngIf="reply.userId.profilePhoto" class="user-avatar" [src]="reply.userId.profilePhoto" alt="User Avatar">
+                                <img *ngIf="reply.userId.profilePhotoUpload && retrievedImage2(reply.userId)" class="user-avatar1" [src]="retrievedImage2(reply.userId)" alt="Profile Photo">
                             </div>
                             <div class="comment-time" style="overflow-wrap:break-word;width:250px">
                                 <span class="username">
@@ -296,7 +389,7 @@
 		        </div>
 		    </form>
 		</div>
-		<div *ngIf="editingPostDiv && selectedPostForEditing === post" id="edit-form">
+<!-- 		<div *ngIf="editingPostDiv && selectedPostForEditing === post" id="edit-form">
 			<div class="containerPost" >
 			    <form (ngSubmit)="onSubmitEdit()" [formGroup]="editPostForm">
 			        <label for="cont_i" name="cont_f">Content</label>
@@ -311,7 +404,51 @@
 			        <button type="button" (click)="cancelEdit3()">Cancel</button>
 			    </form>
 			</div>
-			</div>
+			</div>  -->
+<div *ngIf="editingPostDiv && selectedPostForEditing === post" id="edit-form" class="container" style="padding:0px">
+	<form [formGroup]="editPostForm" (ngSubmit)="saveChanges3()">
+	<table>
+	  <thead></thead>
+	  <tbody >
+	    <tr class="post-row">
+	        <td class="s" >
+	        	<div style="display: flex;align-items: center;position: relative;">
+        	<div  style="width: 376px">
+            <div class="post-content" style="overflow-wrap:break-word;width:300px">
+                  	<textarea class="t" type="text" formControlName="content" placeholder="Text" name="post" required></textarea>
+            </div>
+            </div>
+	</div>
+	</td>
+	</tr>
+	<tr class="post-row" >
+        <td >
+          	<br>
+     <div class="profile-photo" >
+    <label for="profilePhoto3">
+      <span>Change photos</span>
+    </label>
+    <input type="file" id="profilePhoto3" accept="image/*" (change)="handleFileInput3($event)" multiple>
+  </div>
+    <br>
+    <div class="slika-container">
+          <ng-container *ngFor="let imagePath of imagePathss3; let i = index">
+           <div class="slika-wrapper">
+            <img class="slika" [src]="imagePath" alt="Slika">
+            <button (click)="removeImage3(i)" class="delete-button">&#10006;</button>
+            </div>
+          </ng-container>
+        </div>
+        </td>
+      </tr>
+      <tr><td>	<button class="dugmePostavi" type="submit">Submit</button>
+      <button type="button" class="dugmePostavi" (click)="cancelEdit3()">Cancel</button>
+      </td>
+      </tr>
+	</tbody></table></form></div>
+			
+			
+			
       </td>
       </tr>
       <tr style="height:30px">

@@ -54,12 +54,21 @@ public class Group {
 		private boolean isDeleted;
 
 	    @OnDelete(action = OnDeleteAction.CASCADE) 
-	    @JsonIgnoreProperties({"username","friends","groups", "description","password","lastLogin","role","email"})
+	    @JsonIgnoreProperties({"friends","groups", "description","password","lastLogin","role","email"})
 		@JoinColumn(name="user_id")
 		@ManyToOne(fetch = FetchType.EAGER)
 		private User groupAdmin;
 	    
-	    @JsonIgnoreProperties({"friends","groups", "lastName", "firstName","description","password","lastLogin","role"})
+	    @JsonIgnoreProperties({"friends","groups","description","password","lastLogin","role"})
+	    @ManyToMany(fetch = FetchType.EAGER)
+	    @JoinTable(
+	        name = "added_group_admins",
+	        joinColumns = @JoinColumn(name = "group_id"),
+	        inverseJoinColumns = @JoinColumn(name = "user_id")
+	    )
+	    private Set<User> addedGroupAdmins = new HashSet<>();
+	    
+	    @JsonIgnoreProperties({"friends","groups","description","password","lastLogin","role"})
 	    @ManyToMany(fetch = FetchType.EAGER)
 	    @JoinTable(
 	        name = "group_members",
@@ -170,6 +179,14 @@ public class Group {
 			this.members = members;
 		}
 
+
+		public Set<User> getAddedGroupAdmins() {
+			return addedGroupAdmins;
+		}
+
+		public void setAddedGroupAdmins(Set<User> addedGroupAdmins) {
+			this.addedGroupAdmins = addedGroupAdmins;
+		}
 
 		@Override
 		public boolean equals(Object o) {

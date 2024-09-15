@@ -22,25 +22,25 @@ export class GroupsListContentComponent implements OnInit {
     private userService:UserService,
   ) { }
 
-  ngOnInit() {
-	if (this.authService.tokenIsPresent()) {
-		this.getGroups()
-	    this.userService.getMyInfo().subscribe(user => {
-			this.currentUser=user.id;
-	    });
-	    
-  
-	 }
+ngOnInit() {
+    if (this.authService.tokenIsPresent()) {
+        this.userService.getMyInfo().subscribe(user => {
+            this.currentUser = user;
+            console.log(this.currentUser);
 
-	 
-  }
-	
+            // Nakon što dobijete currentUser, pozovite getGroups
+            this.getGroups();
+        });
+    }
+}
 
-  getGroups(){
-    this.groupService.getAllForUser2().subscribe((groups) => {
-    this.groupList= groups    
-    })
-  }
+getGroups() {
+    this.groupService.getAllForUser2().subscribe(groups => {
+        this.groupList = groups;
+        console.log(this.groupList);
+    });
+}
+
 	goBack() {
     window.history.back();
 }

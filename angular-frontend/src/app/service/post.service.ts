@@ -7,6 +7,10 @@ import { catchError, filter, tap } from 'rxjs/operators';
 import {ActivatedRoute, Router} from "@angular/router";
  import { Observable } from 'rxjs';
 import { HttpResponse } from '@angular/common/http';
+import { mergeMap, take } from 'rxjs/operators';
+import { forkJoin, of } from 'rxjs';
+
+
 
 
 @Injectable({
@@ -24,6 +28,10 @@ export class PostService {
 
   getAll() {
     return this.apiService.get(this.config.posts_url);
+  }
+  
+   getAllPostUserId(id) {
+    return this.apiService.get(this.config.postUserId+id);
   }
    getAllRndm() {
     return this.apiService.get(this.config.posts_random_url);
@@ -172,16 +180,12 @@ getOnePost2(id: number): Observable<any> {
 
   return this.apiService.post(this.config.post_url + "/create", JSON.stringify(body));
 }
-edit(post) {
-  let imageArray: { path: string }[] = [];
-  if (post.images) {
-    imageArray = post.images.split(',').map((path: string) => ({ path }));
-  }
+editPre(post) {
+
   
   const body = {
     'id': post.id,
     'content': post.content,
-    'images': imageArray
   };
 
   console.log(body);
@@ -189,62 +193,103 @@ edit(post) {
   return this.apiService.put(this.config.post_url+"/edit", JSON.stringify(body));
 }
 
- create(values:any) {
-    const loginHeaders = new HttpHeaders({
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    });
-    // const body = `username=${user.username}&password=${user.password}`;
-     let imageArray: { path: string }[] = [];
-     if (values.pathSlike) {
-  imageArray = values.pathSlike.split(',').map(path => ({ path: path }));}
+		edit(values: any, selectedFiles?: any[] | undefined) {
+		  const body = {
+		    'id': values.id,
+		    'content': values.content,
+		  };
+		
+		  const formData = new FormData();
+		  formData.append('post', values.id);
+		
+		  if (selectedFiles && selectedFiles.length > 0) {
+		    selectedFiles.forEach((image, index) => {
+		      formData.append('files', image, image.name);
+		    });
+		  }
+		
+		  return this.apiService.put(this.config.post_url + "/edit", JSON.stringify(body)).pipe(
+		    mergeMap((response: any) => {
+		      const headers3 = new HttpHeaders({
+		        'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE',
+		        'Access-Control-Allow-Origin': 'http://localhost:4200'
+		      });
+		
+		      return this.apiService.post("http://localhost:8080/api/users/uploadPostPhotoEdit", formData, headers3).pipe(
+		        map(() => response) 
+		      );
+		    })
+		  );
+		}
+
+
+
+
+
+	create(values: any, selectedFiles?: any[] | undefined) {
+	
+	  const body = {
+	    'content': values.post,
+	  };
+	
+	  return this.apiService.post(this.config.postcreate_url, JSON.stringify(body)).pipe(
+	    mergeMap((response: any) => {
+		   const headers3 = new HttpHeaders({
+		    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE',
+		    'Access-Control-Allow-Origin': 'http://localhost:4200'
+		  });
+	      if (selectedFiles && selectedFiles.length > 0) {
+	        const uploadObservables = selectedFiles.map(image => {
+	          const formData = new FormData();
+	          formData.append('post', response.id);
+	          console.log(response.id);
+	          formData.append('file', image,image.name);
+	          return this.apiService.post("http://localhost:8080/api/users/uploadPostPhoto", formData, headers3);
+	        });
+	
+	        // Koristimo forkJoin da bismo obradili sve slike istovremeno
+	        return forkJoin(uploadObservables).pipe(
+	          map(() => response) // Vraćamo originalni odgovor nakon što se sve slike uploaduju
+	        );
+	      } else {
+	        return of(response); // Ako nema slika, samo vraćamo originalni odgovor
+	      }
+	    })
+	  );
+	}
+
+  
+   createInGroup(values:any, selectedFiles?: any[] | undefined) {
+
 	const body = {
   		'content': values.post,
-  		'images': imageArray
-	};
-    console.log(body);
-    return this.apiService.post(this.config.postcreate_url, JSON.stringify(body), loginHeaders)
-     /* .subscribe((res) => {
-        if(res.body == "NOT_ACCEPTABLE" || res.name == "HttpErrorResponse")
-        {
-          alert("try again")
-        }else {
-          alert("Uspesno ste postavili objavu");
-         
-          let returnUrl : String;
-          returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/allPosts';
-          this.router.navigate([returnUrl + ""]);
-        }
-      })*/;
-  }
-   createInGroup(values:any) {
-    const loginHeaders = new HttpHeaders({
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    });
-    // const body = `username=${user.username}&password=${user.password}`;
-     let imageArray: { path: string }[] = [];
-     if (values.pathSlike) {
-  imageArray = values.pathSlike.split(',').map(path => ({ path: path }));}
-	const body = {
-  		'content': values.post,
-  		'images': imageArray,
   		'group':values.group
 	};
-    console.log(body);
-    return this.apiService.post(this.config.postcreate2_url, JSON.stringify(body), loginHeaders)
-     /* .subscribe((res) => {
-        if(res.body == "NOT_ACCEPTABLE" || res.name == "HttpErrorResponse")
-        {
-          alert("try again")
-        }else {
-          alert("Uspesno ste postavili objavu");
-         
-          let returnUrl : String;
-          returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/allPosts';
-          this.router.navigate([returnUrl + ""]);
-        }
-      })*/;
+	console.log(body);
+	return this.apiService.post(this.config.postcreate2_url, JSON.stringify(body)).pipe(
+	    mergeMap((response: any) => {
+		   const headers3 = new HttpHeaders({
+		    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE',
+		    'Access-Control-Allow-Origin': 'http://localhost:4200'
+		  });
+	      if (selectedFiles && selectedFiles.length > 0) {
+	        const uploadObservables = selectedFiles.map(image => {
+	          const formData = new FormData();
+	          formData.append('post', response.id);
+	          console.log(response.id);
+	          formData.append('file', image,image.name);
+	          return this.apiService.post("http://localhost:8080/api/users/uploadPostPhoto", formData, headers3);
+	        });
+	
+	        // Koristimo forkJoin da bismo obradili sve slike istovremeno
+	        return forkJoin(uploadObservables).pipe(
+	          map(() => response) // Vraćamo originalni odgovor nakon što se sve slike uploaduju
+	        );
+	      } else {
+	        return of(response); // Ako nema slika, samo vraćamo originalni odgovor
+	      }
+	    })
+	  );
   }
    create4(values:any,group:any) {
     const loginHeaders = new HttpHeaders({

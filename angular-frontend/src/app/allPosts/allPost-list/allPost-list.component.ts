@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy ,NgZone} from '@angular/core';
+import { Component, Input, OnInit,OnChanges, SimpleChanges, ChangeDetectionStrategy ,NgZone} from '@angular/core';
 import { FormBuilder, FormGroup, Validators,FormControl } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Subject } from 'rxjs/Subject';
@@ -12,6 +12,8 @@ import { ChangeDetectorRef } from '@angular/core';
 import { Location } from '@angular/common';
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
+import { HttpClient, HttpEventType } from '@angular/common/http';
+import { forkJoin } from 'rxjs';
 
 
 interface DisplayMessage {
@@ -31,9 +33,10 @@ export interface Post {
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['./allPost-list.component.css']
 })
-export class AllPostListComponent implements OnInit {
+export class AllPostListComponent implements OnInit,OnChanges {
   @Input() posts: any[];
   @Input() grupa: any;
+  @Input() profile: any;
   @Input() your: any; 
   editing = false;
   activeDropdownId: { id: number, type: string } | null = null;
@@ -98,6 +101,19 @@ reportReasons: string[] = [
   "OTHER"
 ];
 submittedEdit = false;
+retrievedImageNe: any;
+base64Data: any;
+  retrieveResonse: any;
+  message: string;
+  imageName: any;
+userImageCache: Map<string, string> = new Map<string, string>();
+imagePathss: string[] = [];
+imagePathss2: string[] = [];
+imagePathss3: string[] = [];
+selectedFiles: File[] = [];
+selectedFiles2: File[] = [];
+selectedFiles3: File[] = [];
+private postImageCache = new Map<number, string[]>();
 
   constructor(
 	private location: Location,
@@ -111,6 +127,7 @@ submittedEdit = false;
     private route: ActivatedRoute,
     private authService: AuthService,
     private router:Router,
+    private httpClient: HttpClient
      
   ) {	
 	this.editCommentForm = this.formBuilder.group({
@@ -135,13 +152,33 @@ submittedEdit = false;
 
    ngOnInit() {
 	
+	console.log(this.posts);
+	
 	if (this.authService.tokenIsPresent()) {
-		console.log("h");
     this.userService.getMyInfo().subscribe(user => {
 		this.currentUser=user.id;
     });
   }
-
+	if(this.posts){
+	for(const p of this.posts){
+			if(p.postedBy.profilePhotoUpload){		
+				console.log("ppozv");
+				this.retrievedImage2(p.postedBy);
+			}
+			for(const c of p.comments){
+				if(c.userId.profilePhotoUpload){		
+				console.log("ppozv");
+				this.retrievedImage2(c.userId);
+			}
+				for(const p of c.repliesComment){
+					if(p.userId.profilePhotoUpload){		
+					console.log("ppozv");
+					this.retrievedImage2(p.userId);
+				}}
+			}
+			
+		}
+	}
 
    this.postService.getAllRndm().subscribe((posts) => {
     for (const post of posts) {
@@ -160,34 +197,54 @@ submittedEdit = false;
   });
 
   }
-   onSubmitEdit() {
-   if (this.editPostForm.valid && this.editingPostDiv) {	  
-	if (this.authService.tokenIsPresent()) {
-		 if (!this.editPostForm.value.content){
-			 alert('Tekst je obavezno polje objave');
-		}else{
-    this.submittedEdit = true;
-    console.warn('Your order has been submitted', this.editPostForm.value);
-    
-     this.postService.edit(this.editPostForm.value).subscribe(() => {
-    this.postService.getAllFromUser().subscribe((posts) => {
-      this.posts = posts; 
-      this.editingPostDiv=false;
-        this.cdr.detectChanges();
-    });
-  })
-
-	this.editPostForm.patchValue({
-  	content: '',
- 	images: ''
-	});;}
-	
-	}
-	 else {
-    alert('Morate se prvo ulogovati');
-    // Dodajte logiku koju želite da primenite ako korisnik nije ulogovan
-  }}
+  
+    ngOnChanges(changes: SimpleChanges) {
+    // ngOnChanges() se poziva kada se input podaci promene
+    // Ovde možete pristupiti input podacima i raditi sa njima
+    if (changes.posts) {
+      console.log('Input "posts" promenjen:', this.posts);
+      if(this.posts){
+	    for (const p of this.posts) {
+	      if (p.images && p.images.length > 0) {
+			const imagesPaths=[];
+			for(const i of p.images){
+				if (i.picByte){
+					this.loadPostImages(p.images,p);
+					break;
+				}
+				imagesPaths.push(i.imagePath);
+			}
+			this.postImageCache.set(p.id,imagesPaths);
+	        	this.cdr.detectChanges();
+	      }
+	    }
+    }
+    }
   }
+  
+  slike(posts){
+	console.log(posts);
+		   for (const p of posts) {
+	      if (p.images && p.images.length > 0) {
+			console.log(p.images);
+			const imagesPaths=[];
+			for(const i of p.images){
+				console.log(i);
+				if (i.picByte){
+					console.log(i);
+					this.loadPostImages(p.images,p);
+					this.cdr.detectChanges();
+					break;
+				}
+				imagesPaths.push(i.imagePath);
+			}
+			console.log(imagesPaths);
+			this.postImageCache.set(p.id,imagesPaths);
+	        	this.cdr.detectChanges();
+	      }
+	    }
+	     console.log(this.postImageCache);
+}
  	
 	toggleCommentDropdown(data: { id: number, type: string }) {
   console.log(this.activeDropdownId);
@@ -252,7 +309,131 @@ togglePostDropdown(data: { id: number, type: string }) {
 	
 	closePostDropdown(postId: number) {
 	  this.postDropdownStatus[postId].open = false;
+	  this.imagePathss3=[];
+	  this.cdr.detectChanges();
 	}
+	/*  getImage2() {
+	console.log(this.user.profilePhotoUpload);
+    this.httpClient.get('http://localhost:8080/api/users/get/' + this.user.profilePhotoUpload)
+      .subscribe(
+        res => {
+          this.retrieveResonse = res;
+          this.base64Data = this.retrieveResonse.picByte;
+          this.retrievedImage2 = 'data:image/jpeg;base64,' + this.base64Data;
+        }
+      );
+  }*/
+  retrievedImage(user: any) {
+	console.log(user.profilePhotoUpload);
+  //Make a call to Spring Boot to get the Image Bytes.
+  this.httpClient.get('http://localhost:8080/api/users/get/' + user.profilePhotoUpload)
+    .subscribe(
+      res => {
+        this.retrieveResonse = res;
+        this.base64Data = this.retrieveResonse.picByte;
+        console.log('data:image/jpeg;base64,' + this.base64Data);
+        return 'data:image/jpeg;base64,' + this.base64Data;
+      }
+    );
+}
+
+removeImage(index: number) {
+  this.imagePathss.splice(index, 1); 
+  this.selectedFiles.splice(index, 1);
+   this.cdr.detectChanges();       
+}
+
+removeImage2(index: number) {
+  this.imagePathss2.splice(index, 1); 
+  this.selectedFiles2.splice(index, 1);
+   this.cdr.detectChanges();       
+}
+
+removeImage3(index: number) {
+  this.imagePathss3.splice(index, 1); 
+  this.selectedFiles3.splice(index, 1);
+   this.cdr.detectChanges();       
+}
+
+handleFileInput(event: any) {
+  const files = event.target.files;
+console.log("handlefileinput1");
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+     this.selectedFiles.push(file);
+    const reader = new FileReader();
+
+    reader.onload = (e: any) => {
+      const imagePath = e.target.result ;
+      this.imagePathss.push(imagePath);  
+      this.cdr.detectChanges();       
+    };
+	
+    reader.readAsDataURL(file);
+  }
+  console.log(this.imagePathss);
+}
+
+handleFileInput2(event: any) {
+  const files = event.target.files;
+  
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+     this.selectedFiles2.push(file);
+    const reader = new FileReader();
+
+    reader.onload = (e: any) => {
+      const imagePath = e.target.result ;
+      this.imagePathss2.push(imagePath);  
+      this.cdr.detectChanges();       
+    };
+	
+    reader.readAsDataURL(file);
+  }
+  console.log(this.imagePathss2);
+}
+handleFileInput3(event: any) {
+	console.log("handlefileinput3");
+  const files = event.target.files;
+
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+     this.selectedFiles3.push(file);
+    const reader = new FileReader();
+
+    reader.onload = (e: any) => {
+      const imagePath = e.target.result ;
+      this.imagePathss3.push(imagePath);  
+      this.cdr.detectChanges();       
+    };
+	
+    reader.readAsDataURL(file);
+  }
+  console.log(this.imagePathss3);
+}
+
+retrievedImage2(user: any) {
+  if (this.userImageCache.has(user.id)) {
+    return this.userImageCache.get(user.id);
+  } else {
+    this.httpClient.get('http://localhost:8080/api/users/get/' + user.profilePhotoUpload.imagePath+"/"+user.profilePhotoUpload.id)
+      .subscribe(
+        res => {
+          this.retrieveResonse = res;
+          this.base64Data = this.retrieveResonse.picByte;
+          const imageUrl = 'data:image/jpeg;base64,' + this.base64Data;
+          this.userImageCache.set(user.id, imageUrl);
+          this.cdr.detectChanges();
+          return imageUrl;
+        }
+      );
+  }
+}
+
+
 
 	sortComments(tip: string,post:any) {
 		const body = {
@@ -449,15 +630,11 @@ reportuj(selectedReason: string,post?,comment?) {
         this.editingPostDiv = true;
         this.editPostForm = this.formBuilder.group({
 	      id: post.id,
-	      content: ['', Validators.compose([Validators.required])],
-	      images:['']
+	      content: ['', Validators.compose([Validators.required])]
 	    });
 	    this.editPostForm.get("id").setValue(post.id);
-	    this.editPostForm.get("content").setValue(post.content)
-	    console.log(this.getImagesSize1(post.images));
-	    
-	    this.editPostForm.get("images").setValue(this.getImagesPathString(post.images));
-	    console.log(this.getImagesPathString(post.images));
+	    this.editPostForm.get("content").setValue(post.content)  
+	    this.cdr.detectChanges(); 
 	    this.send();
 	    }
 
@@ -808,7 +985,8 @@ getImagesSize2(post: any): string[] {
   return imagePaths;
 }
   onSubmitPostavi() {
-	console.log("aa"+this.grupa)
+	this.imagePathss = [];
+	 this.cdr.detectChanges();
 	if (this.authService.tokenIsPresent()) {
 		 if (!this.forma.value.post){
 			 alert('Tekst je obavezno polje objave');
@@ -830,6 +1008,175 @@ getImagesSize2(post: any): string[] {
 
 	
 }
+
+
+	loadPostImages(images,post: any) {
+	/*  if ( this.postImageCache.has(post.id)) {
+		console.log(this.postImageCache.get(post.id));
+	    return this.postImageCache.get(post.id);
+	  } else {*/
+		console.log(post,images);
+	    const imageUrls = images.map((image: any) => {
+		console.log("3p");
+			return 'http://localhost:8080/api/users/get/' + image.imagePath+"/"+image.id;
+
+	    });
+		console.log(imageUrls);
+	    const observables = imageUrls.map(url => this.httpClient.get(url));
+		console.log(observables);
+	    forkJoin(observables).subscribe(
+	      (responses: any[]) => {
+	        const imageUrls = responses.map((res: any) => {
+				if(res.picByte){
+					 const base64Data = res.picByte;
+	          	return 'data:image/jpeg;base64,' + base64Data;
+				}else if (!res.picByte){
+					return res.imagePath;
+				}
+	         
+	        });
+	
+	        this.postImageCache.set(post.id, imageUrls);
+	        this.cdr.detectChanges();
+	      }
+	    );
+	 // }
+	  console.log(this.postImageCache);
+	}
+
+	saveChanges() {
+	  if (!this.forma.value.post) {
+	    alert('Tekst je obavezno polje objave');
+	  } else {
+		console.log(this.imagePathss);
+	    if (this.imagePathss && this.imagePathss.length > 0) {
+	      console.log(this.imagePathss);
+	      this.postService.create(this.forma.value, this.selectedFiles).subscribe((data) => {
+	        this.postService.getAllRndm().subscribe((posts) => {
+	          this.posts = posts;
+	          this.cdr.detectChanges();
+	          this.slike(posts);	   
+	          this.cdr.detectChanges();       
+	          console.log(this.posts);
+	        });
+	        console.log('Changes saved:', data);
+	      });
+	    } else {
+	      this.postService.create(this.forma.value).subscribe((data) => {
+	        this.postService.getAllRndm().subscribe((posts) => {
+	          this.posts = posts;
+	          this.cdr.detectChanges();
+	          console.log('Changes saved:', data);
+	        });
+	      });
+	    }
+	    this.imagePathss = [];
+	    this.selectedFiles=[];
+	    this.forma.reset();
+	    this.cdr.detectChanges();
+	    alert("You have successfully uploaded a post")
+	  }
+	}
+
+saveChanges2() {
+	this.forma2.get('group').setValue(this.grupa);
+	console.log(this.grupa);
+	  if (!this.forma2.value.post) {
+	    alert('Tekst je obavezno polje objave');
+	  } else {
+		console.log(this.imagePathss2);
+	    if (this.imagePathss2 && this.imagePathss2.length > 0) {
+	      console.log(this.imagePathss2);
+	      this.postService.createInGroup(this.forma2.value, this.selectedFiles2).subscribe((data) => {
+	        this.groupService.getGroupPosts(this.grupa.id).subscribe((posts) => {
+			  console.log(posts);
+		      this.posts = posts; 
+	          this.cdr.detectChanges();
+	          this.slike(posts);	   
+	          this.cdr.detectChanges();       
+	          console.log(this.posts);
+	        });
+	        console.log('Changes saved:', data);
+	      });
+	    } else {
+	      this.postService.createInGroup(this.forma2.value).subscribe((data) => {
+	        this.groupService.getGroupPosts(this.grupa.id).subscribe((posts) => {
+	          this.posts = posts;
+	          this.cdr.detectChanges();
+	          console.log('Changes saved:', data);
+	        });
+	      });
+	    }
+	    this.imagePathss2 = [];
+	    this.selectedFiles2=[];
+	    this.forma2.reset();
+	    this.cdr.detectChanges();
+		alert("You have successfully uploaded a post")
+	  }
+	}
+	saveChanges3() {
+	  if (!this.editPostForm.value.content) {
+	    alert('Tekst je obavezno polje objave');
+	  } else {
+		console.log(this.imagePathss3);
+	    if (this.imagePathss3 && this.imagePathss3.length > 0) {
+	      console.log(this.imagePathss3);
+	      this.postService.edit(this.editPostForm.value, this.selectedFiles3).subscribe((data) => {
+		    this.postService.getAllFromUser().subscribe((posts) => {
+		      this.posts = posts; 
+		      this.cdr.detectChanges();
+		      this.slike(posts);
+		      this.editingPostDiv=false;
+		        this.cdr.detectChanges();
+		    });
+	        console.log('Changes saved:', data);
+	      });
+	    } else {
+	      this.postService.edit(this.editPostForm.value).subscribe((data) => {
+	        this.postService.getAllFromUser().subscribe((posts) => {
+	          this.posts = posts;
+	          this.cdr.detectChanges();
+	          console.log('Changes saved:', data);
+	        });
+	      });
+	    }
+	    this.imagePathss3 = [];
+	    this.selectedFiles3=[];
+	    this.editPostForm.reset();
+	    this.cdr.detectChanges();
+	    console.log(this.imagePathss3)
+		alert("You have successfully uploaded a post")
+	  }
+	}
+
+   onSubmitEdit() {
+   if (this.editPostForm.valid && this.editingPostDiv) {	  
+	if (this.authService.tokenIsPresent()) {
+		 if (!this.editPostForm.value.content){
+			 alert('Tekst je obavezno polje objave');
+		}else{
+    this.submittedEdit = true;
+    console.warn('Your order has been submitted', this.editPostForm.value);
+    
+     this.postService.edit(this.editPostForm.value).subscribe(() => {
+    this.postService.getAllFromUser().subscribe((posts) => {
+      this.posts = posts; 
+      this.editingPostDiv=false;
+        this.cdr.detectChanges();
+    });
+  })
+
+	this.editPostForm.patchValue({
+  	content: '',
+	});;}
+	
+	}
+	 else {
+    alert('Morate se prvo ulogovati');
+    // Dodajte logiku koju želite da primenite ako korisnik nije ulogovan
+  }}
+  }
+
   onSubmitPostavi2() {
 	this.forma2.get('group').setValue(this.grupa);
 	console.log("aa"+this.grupa)

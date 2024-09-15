@@ -58,7 +58,7 @@ public class GroupRequestController {
                 User u = (User) auth.getPrincipal();
                 rs.ac.uns.ftn.svtvezbe07.model.entity.User user = userService.findByUsername(u.getUsername());
 
-                if (group.getMembers().contains(user) || group.getGroupAdmin().equals(user)) {
+                if (group.getMembers().contains(user) || (group.getGroupAdmin()!=null && group.getGroupAdmin().equals(user))) {
                     return new ResponseEntity<>(HttpStatus.OK);
                 }
 
@@ -69,7 +69,7 @@ public class GroupRequestController {
                 groupRequest.setGroup(group);
 
                 GroupRequest createdGroupRequest = groupRequestService.save(groupRequest);
-
+                logger.info("Napravljen zahtev za grupu");
                 return new ResponseEntity<>(createdGroupRequest, HttpStatus.CREATED);
             } else {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -91,7 +91,7 @@ public class GroupRequestController {
                continue;
             }else { pendingGroupRequests.add(request);}
         }
-
+        logger.info("Vracena lista zahteva za grupu");
         return new ResponseEntity<>(pendingGroupRequests, HttpStatus.OK);
     }
 
@@ -119,13 +119,13 @@ public class GroupRequestController {
                 Group group = approvedGroupRequest.getGroup();
                 rs.ac.uns.ftn.svtvezbe07.model.entity.User user = approvedGroupRequest.getUser_id();
 
-                if (group.getMembers().contains(user) || group.getGroupAdmin().equals(user)) {
+                if (group.getMembers().contains(user) || (group.getGroupAdmin()!=null && group.getGroupAdmin().equals(user))) {
                     return new ResponseEntity<>(HttpStatus.BAD_REQUEST); 
                 }
 
                 group.getMembers().add(user);
                 groupService.save(group);
-
+                logger.info("Prihvacen zahtev za grupu");
                 return new ResponseEntity<>(approvedGroupRequest, HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -141,6 +141,7 @@ public class GroupRequestController {
     public ResponseEntity<GroupRequest> deleteGroupRequest(@PathVariable Long id) {
         try {
             groupRequestService.delete(id);
+            logger.info("Obrisan zahtev za grupu");
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

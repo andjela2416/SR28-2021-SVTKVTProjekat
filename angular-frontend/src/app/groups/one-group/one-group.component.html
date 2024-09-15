@@ -2,11 +2,63 @@
 <div class="col">
 	<div *ngIf="group">
     <h1>{{ group.name }}</h1>
-    <p>Administrator: {{ group.groupAdmin.firstName }} {{ group.groupAdmin.lastName }}</p>
+    <p *ngIf="group.groupAdmin">Administrator: {{ group.groupAdmin?.firstName }} {{ group.groupAdmin?.lastName }}</p>
+    <p *ngIf="group.addedGroupAdmins.length > 0">
+      Additional Administrators: 
+      <ng-container *ngFor="let admin of group.addedGroupAdmins; let last = last">
+	    {{ admin.firstName }} {{ admin.lastName }}<span *ngIf="!last">,</span>
+	  </ng-container>
+    </p>
     <p>Description: {{group.description}}</p>
     <p>Creation date: {{ formatTimestamp(group.creationDate) }}</p>
-    <button *ngIf="!isMember && !isAdmin" class="dugme" (click)="posaljiZahtevZaGrupu()"> {{ isRequestSent ? 'Request sent' : 'Join group' }}</button>
+		<ng-container *ngIf="isUserBannedInGroup; else groupActions">
+            <p style="color:rgb(237 68 64)">You are banned in this group.</p>
+        </ng-container>
+
+        <ng-template #groupActions>
+            <button *ngIf="!isMember && !isAdmin" class="dugme" (click)="posaljiZahtevZaGrupu()">
+                {{ isRequestSent ? 'Request sent' : 'Join group' }}
+            </button>
+        </ng-template>
+        
+        <ng-container *ngIf="systemAdmin">
+      <div>
+        <label for="removeAdmin">Remove Administrator:</label>
+        <select id="removeAdmin" [(ngModel)]="selectedAdminToRemove">
+          <option *ngIf="group.groupAdmin"  [value]="group.groupAdmin.id">{{ group.groupAdmin.firstName }} {{ group.groupAdmin.lastName }}</option>
+          <option *ngFor="let admin of group.addedGroupAdmins" [value]="admin.id">{{ admin.firstName }} {{ admin.lastName }}</option>
+        </select>
+        <button (click)="removeAdmin()">Remove</button>
+      </div>
+    </ng-container>
 </div>
+<div class="scroll" *ngIf="group">
+    <table style="font-size:14px;width:300px;">
+    <thead>
+      <tr>
+        <th *ngIf="!isAdmin" colspan="4">Members of the group</th>
+        <th *ngIf="isAdmin" colspan="4">Members of the group</th>
+      </tr>
+      <tr>
+      <th>Display Name</th>
+      <th>Email</th>
+      <th *ngIf="isAdmin">Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of group.members">
+        <td style="word-wrap: break-word;max-width: 100px">
+        <a [routerLink]="['/profile', user.id]">{{ user.displayName }}</a>
+        </td>
+		<td style="word-wrap: break-word;max-width: 100px">{{ user.email }}</td>
+        <td *ngIf="isAdmin" style="max-width: 100px">
+        <button class="dugme" (click)="addAdmin(user.id,group.id)">Set admin</button>
+           <button class="dugme" (click)="suspend(user.id,group.id)">Block</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+    </div>
 </div>	
 
 

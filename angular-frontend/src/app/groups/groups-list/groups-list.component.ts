@@ -36,6 +36,9 @@ export class GroupsListComponent implements OnInit {
   @Input() posts: any[];
   @Input() currentUser: any; 
   editing = false;
+  postList: any[];
+  isGroupAdmin = false;
+  role:any;
   form: FormGroup
   private ngUnsubscribe: Subject<void> = new Subject<void>();
   notification: DisplayMessage;
@@ -72,8 +75,10 @@ export class GroupsListComponent implements OnInit {
 	commentDropdownStatus: { [commentId: number]: { open: boolean } } = {};
 	chosedGroup = false;
 	group: any;
-	postList: any[];
-
+	groups2:any[];
+groupSuspend=false;
+groupToSuspend:any;
+suspendReason: string = '';
 	
   constructor(
 	private location: Location,
@@ -110,6 +115,19 @@ export class GroupsListComponent implements OnInit {
    
 
    ngOnInit() {
+	   this.userService.getMyInfo().subscribe((user) => {
+		this.role=user.role;
+		console.log(this.role);
+		if(user.role=='ADMIN'){
+			 this.groupService.getAll().subscribe((gr) => {
+		      this.groups2 = gr; 
+			console.log(this.groups2 );  
+			this.cdr.detectChanges();  
+		    });
+		}
+		console.log(this.groups);
+		console.log(this.currentUser);
+  });
 
 
    this.postService.getAllRndm().subscribe((posts) => {
@@ -128,13 +146,37 @@ export class GroupsListComponent implements OnInit {
   });
 
   }
+  provera(group){
+	return (group.groupAdmin && group.groupAdmin.id==this.currentUser.id) || group.addedGroupAdmins.some(admin => admin.id === this.currentUser.id);
+}
+  
     
   handleGroupClick(group) {
   this.getGroupPosts(group.id);
   this.group=group;
   this.chosedGroup=true;
+  if((group.groupAdmin && group.groupAdmin.id==this.userService.currentUser.id) || group.addedGroupAdmins.some(admin => admin.id === this.userService.currentUser.id)){
+	this.isGroupAdmin=true;
 }
-
+}
+  suspend(user:number,group:number) {
+  // Nakon što se korisnik suspenduje, možete ažurirati tabelu ili obavestiti korisnika o uspehu ili neuspehu operacije.
+	this.userService.suspend2(user,group).subscribe((rep)=>{	    
+		this.groupService.getOneGroup(group).subscribe((gr=>{
+			this.group=gr;
+			this.cdr.detectChanges();
+		}))
+  });
+}
+  addAdmin(user:number,group:number) {
+  // Nakon što se korisnik suspenduje, možete ažurirati tabelu ili obavestiti korisnika o uspehu ili neuspehu operacije.
+	this.userService.addGrAdmin(user,group).subscribe((rep)=>{	    
+		this.groupService.getOneGroup(group).subscribe((gr=>{
+			this.group=gr;
+			this.cdr.detectChanges();
+		}))
+  });
+}
   
   getGroupPosts(id:number){
 	console.log("pozv");
@@ -161,6 +203,40 @@ export class GroupsListComponent implements OnInit {
 	closeCommentDropdown(commentId: number) {
 	  this.commentDropdownStatus[commentId].open = false;
 	}
+	  
+  suspendGroup(group:number){
+	this.groupSuspend=true;
+	this.groupToSuspend=group;
+}
+ cancelSuspend(){
+	this.groupSuspend=false;
+	this.groupToSuspend=null;
+	this.suspendReason='';
+	this.cdr.detectChanges();
+}
+
+  confirmSuspend(){
+	if(!this.suspendReason || this.suspendReason=='' || this.suspendReason.trim()==''){
+		alert("You must write reason")
+	}else{
+			this.groupSuspend=false;
+		 const body = {
+    suspendedReason: this.suspendReason,
+    group: this.groupToSuspend,
+  };
+	  this.groupService.suspendGr(body).subscribe((rep)=>{
+		this.suspendReason='';
+		this.groupService.getAll().subscribe((gr) => {
+		      this.groups2 = gr; 
+			console.log(gr); 
+			 this.cdr.detectChanges();    
+		    });
+		
+	});
+	}
+	
+
+}
 
 	sortComments(tip: string,post:any) {
 		const body = {
@@ -179,7 +255,9 @@ export class GroupsListComponent implements OnInit {
 	  }
 	  
 	  praviGrupu() {
-		
+	this.groupSuspend=false;
+	this.groupToSuspend=null;
+	this.suspendReason='';
     this.createGroup=true;
   }
   	  cancel() {
@@ -191,6 +269,9 @@ export class GroupsListComponent implements OnInit {
   
   
       napraviGrupu() {
+	this.groupSuspend=false;
+	this.groupToSuspend=null;
+	this.suspendReason='';
 		 if (!this.form6.value.name){
 			 alert('Ime grupe je obavezno polje');
 		}else{console.log(this.form6.value);
@@ -200,8 +281,15 @@ export class GroupsListComponent implements OnInit {
 	res=>{
 	this.groupService.getAllForUser2().subscribe((groupsUpdated) => {
     this.groups= groupsUpdated;
+    console.log(groupsUpdated);
     this.cdr.detectChanges();
     })
+    if(this.role=='ADMIN'){
+	this.groupService.getAll().subscribe((groupsUpdated) => {
+    this.groups2= groupsUpdated;
+    this.cdr.detectChanges();
+    })
+}
 	}	
 	);
     this.createGroup=false;
